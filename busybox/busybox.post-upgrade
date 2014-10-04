@@ -1,0 +1,4 @@
+#!/bin/sh
+
+# We need the symlinks early
+exec /System/Programs/busybox --install -s

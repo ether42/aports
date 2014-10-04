@@ -1,0 +1,106 @@
+# Maintainer: Tomasz Sterna <tomek@xiaoka.com>
+pkgname=dos-baselayout
+pkgver=1.0.0
+pkgrel=1
+pkgdesc="D/os base dir structure and init scripts"
+url="http://git.d-os.org/cgit/aports/tree/main/dos-baselayout"
+arch="noarch"
+license="GPL2"
+depends=""
+pkggroups="shadow"
+options="!fhs"
+install=""
+source="passwd
+	group
+	profile
+	"
+
+_builddir="$srcdir"/build
+prepare() {
+	mkdir -p "$_builddir"
+}
+
+build() {
+	cd "$_builddir"
+	# generate shadow
+	awk -F: '{
+		pw = ":!:"
+		if ($1 == "root") { pw = "::" }
+		print($1 pw ":0:::::")
+	}' "$srcdir"/passwd > shadow
+
+}
+
+package() {
+	mkdir -p "$pkgdir"
+	cd "$pkgdir"
+	install -m 0755 -d \
+		System \
+		System/Settings \
+		System/Programs \
+		System/Services \
+		System/Files \
+		System/Libraries \
+		System/State \
+		System/State/volatile \
+		System/Documentation \
+		Users \
+		Applications \
+		Development \
+		Development/Headers \
+		Development/Libraries \
+		Development/Programs \
+		Media \
+		Depot \
+		dev \
+		dev/pts \
+		dev/shm \
+		proc \
+		sys \
+		usr \
+		|| return 1
+
+	install -d -m 0700 "$pkgdir"/root || return 1
+	install -d -m 1777 "$pkgdir"/tmp "$pkgdir"/var/tmp || return 1
+
+	echo "UTC" > "$pkgdir"/System/Settings/TZ
+	echo "127.0.0.1	localhost localhost.localdomain" > "$pkgdir"/System/Settings/hosts
+
+	cat > "$pkgdir"/System/Settings/sysctl.conf <<EOF
+net.ipv4.ip_forward = 0
+net.ipv4.tcp_syncookies = 1
+net.ipv4.conf.default.rp_filter = 1
+net.ipv4.conf.all.rp_filter = 1
+kernel.panic = 120
+EOF
+	install -m644 \
+		"$srcdir"/group \
+		"$srcdir"/passwd \
+		"$srcdir"/profile \
+		"$pkgdir"/System/Settings/ || return 1
+
+	install -m640 -g shadow "$_builddir"/shadow \
+		"$pkgdir"/System/Settings/ || return 1
+
+	# symlinks
+	ln -s /System/Settings "$pkgdir"/etc
+	ln -s /System/Programs "$pkgdir"/bin
+	ln -s /System/Programs "$pkgdir"/sbin
+	ln -s /System/Programs "$pkgdir"/usr/bin
+	ln -s /System/Programs "$pkgdir"/usr/sbin
+	ln -s /System/Files "$pkgdir"/usr/share
+	ln -s /System/State "$pkgdir"/var
+	ln -s /System/State/volatile "$pkgdir"/run
+	ln -s /System/State/volatile "$pkgdir"/var/run
+	ln -s /proc/mounts "$pkgdir"/System/Settings/mtab
+
+}
+md5sums="d05579984e737021401d8c40153c5b5d  passwd
+67ee12ef936978ec0e7d295eaba1e420  group
+dcb55fbc491316cdb3874f3ddae8f566  profile"
+sha256sums="348e451c8d4d2d9807d78114d100942f1c5481fd52550c821922b84a16f02d42  passwd
+591fce261465cd838bcfddc9a4e560cc4f0c1d603921c200c350b935213b9ca1  group
+8165abfa26a1754c317228e78142f4a89dd72a669951d269f0b68d7a92faf1e8  profile"
+sha512sums="3b9be283e171516dd45ee29775a1149ba20d5672bef422a698ed944ce66697e5a80dec21a9a20c079cca895890dbfa73ccbb8000a55504d95ced4e7436d8e16b  passwd
+214d7b26bfdefbe08d150974d1e1635ee4b8ca68a04a22eacf2e465f3a191421fb453ad93f14a1c70f98b628a509d623e005f912270e7552513daa1e50bb1859  group
+9e197ec99c97ec2b03b97546d632a865d6e7abe5742ac48bcb458a505ce38abd1010ef93ea8a752251578ea993708324e1d36ccf77ee3e7cde7e8db98cc42d67  profile"

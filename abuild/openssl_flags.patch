@@ -1,0 +1,11 @@
+--- abuild-2.20.1/Makefile.orig	2014-10-04 23:39:41.853552498 +0200
++++ abuild-2.20.1/Makefile	2014-10-04 23:40:13.630220093 +0200
+@@ -43,7 +43,7 @@
+ 
+ OBJS-abuild-tar  = abuild-tar.o
+ LIBS-abuild-tar = $(SSL_LIBS)
+-CFLAGS-abuild-tar = $(SSL_CFLAGS)
++CFLAGS-abuild-tar.o = $(SSL_CFLAGS)
+ 
+ OBJS-abuild-sudo = abuild-sudo.o
+ 
