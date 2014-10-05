@@ -18,6 +18,7 @@ install="$pkgname.pre-install $pkgname.pre-upgrade"
 subpackages="apkbuild-cpan:cpan"
 pkggroups="abuild"
 source="http://dev.alpinelinux.org/archive/abuild/abuild-$pkgver.tar.xz
+	dos_paths.patch
 	openssl_flags.patch
 	"
 
@@ -42,7 +43,8 @@ build() {
 
 package() {
 	cd "$_builddir"
-	make install DESTDIR="$pkgdir" || return 1
+	prefix=/Development bindir=/Development/Programs sysconfdir=/Development/Settings datadir=/Development/Common/abuild \
+		make install DESTDIR="$pkgdir" || return 1
 	install -m 644 abuild.conf "$pkgdir"/Development/Settings/abuild.conf || return 1
 	install -d -m 775 -g abuild "$pkgdir"/Development/Cache/distfiles || return 1
 }
@@ -56,8 +58,11 @@ cpan() {
 }
 
 md5sums="046601e323b5f693c1239d01391a323a  abuild-2.20.1.tar.xz
+7309fdaa53bf1e57bf57d23696535ab4  dos_paths.patch
 ae832aca749a67e758dcc109b14d6c46  openssl_flags.patch"
 sha256sums="58bab6bf4a6467c9efa00676c3e79cbda5154242dcf4faf41cfbbfd6910cce27  abuild-2.20.1.tar.xz
+fc33d9e80a2480fb5fcd445018ab86a4ea7232d777e27530f36360cc61bbc579  dos_paths.patch
 025e46935634c73397a823f309838d114e77e1cb65078187784caf1bec293144  openssl_flags.patch"
 sha512sums="962710cba13f713f4fc7b6ac5851cbe4d7a6e6a13b629ca73af1eb521e84f80160a98df6c611d89c92db41c0192762db41783158774820827776a1251ca33bf2  abuild-2.20.1.tar.xz
+11645623f18a854855bd742d899a05389b8ea55f835c88e0c8d996212be96c15bd102c21a330ddf3dbdd0a3b132a5307ba6bd362e5ce2fc21063deb247057423  dos_paths.patch
 b2a34f1e9a8dbbe563f78482d69f762f2c35919e3a70bdd654c90fc95e17740de59f63491f7adcf51fc7c67df25f55296f9818173030bbf5d30a25267531768f  openssl_flags.patch"

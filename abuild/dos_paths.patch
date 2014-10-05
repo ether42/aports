@@ -1,0 +1,154 @@
+--- abuild-2.20.1/abuild.in	2014-10-04 23:40:24.000000000 +0200
++++ abuild-2.20.1/abuild	2014-10-05 12:38:08.451845790 +0200
+@@ -669,7 +669,7 @@
+ 	done
+ 	postcheck "$pkgdir" "$pkgname" || return 1
+ 	# post check for /usr/share/locale
+-	if [ -d "$pkgdir"/usr/share/locale ]; then
++	if [ -d "$pkgdir"/usr/share/locale ] || [ -d "$pkgdir"/System/Files/locale ]; then
+ 		warning "Found /usr/share/locale"
+ 		warning2 "Maybe add \$pkgname-lang to subpackages?"
+ 	fi
+@@ -680,7 +680,7 @@
+ 	install_if="$pkgname=$pkgver-r$pkgrel lang"
+ 	arch="noarch"
+ 	local dir
+-	for dir in ${langdir:-/usr/share/locale}; do
++	for dir in ${langdir:-/System/Files/locale}; do
+ 		mkdir -p "$subpkgdir"/${dir%/*}
+ 		mv "$pkgdir"/"$dir" "$subpkgdir"/"$dir" || return 1
+ 	done
+@@ -699,7 +699,7 @@
+ 	arch="noarch"
+ 	install_if="$pkgname=$pkgver-r$pkgrel lang-$lang"
+ 	local dir
+-	for dir in ${langdir:-/usr/share/locale}; do
++	for dir in ${langdir:-/System/Files/locale}; do
+ 		mkdir -p "$subpkgdir"/$dir
+ 		mv "$pkgdir"/$dir/$lang* \
+ 		"$subpkgdir"/$dir/ \
+@@ -857,10 +857,17 @@
+ 	if grep -q -x '/usr/lib' "$controldir"/.rpaths; then
+ 		warning "Redundant /usr/lib in rpath found"
+ 	fi
++	if grep -q -x '/System/Libraries' "$controldir"/.rpaths; then
++		warning "Redundant /System/Libraries in rpath found"
++	fi
+ 	if grep '^/home/' "$controldir"/.rpaths; then
+ 		error "Has /home/... in rpath"
+ 		return 1
+ 	fi
++	if grep '^/Users/' "$controldir"/.rpaths; then
++		error "Has /Users/... in rpath"
++		return 1
++	fi
+ }
+ 
+ # check if dir has arch specific binaries
+@@ -924,7 +931,7 @@
+ 	local rpaths=$(cat "$1")
+ 	shift
+ 	while [ $# -gt 0 ]; do
+-		real_so_path "$1" /usr/lib /lib $rpaths || return 1
++		real_so_path "$1" /System/Libraries /usr/lib /lib $rpaths || return 1
+ 		shift
+ 	done
+ 	return 0
+@@ -940,9 +947,9 @@
+ 	local i= found= autodeps= deppkgs= missing=
+ 	msg "Tracing dependencies..."
+ 	# add pkgconfig if usr/lib/pkgconfig is found
+-	if [ -d "$pkgbasedir"/$name/usr/lib/pkgconfig ] \
++	if [ -d "$pkgbasedir"/$name/Development/Common/pkgconfig ] \
+ 			&& ! grep -q '^depend = pkgconfig' "$dir"/.PKGINFO; then
+-		msg "  added pkgconfig (found /usr/lib/pkgconfig)"
++		msg "  added pkgconfig (found /Development/Common/pkgconfig)"
+ 		autodeps="$autodeps pkgconfig"
+ 	fi
+ 
+@@ -994,7 +1001,7 @@
+ 
+ find_scanelf_paths() {
+ 	local datadir="$1"
+-	local paths="$datadir/lib:$datadir/usr/lib" i= rpaths=
++	local paths="$datadir/System/Libraries" i= rpaths=
+ 	if [ -n "$ldpath" ]; then
+ 		paths="$paths:$(echo "${datadir}${ldpath}" | sed "s|:|:$datadir|g")"
+ 	fi
+@@ -1233,10 +1240,15 @@
+ 		fi
+ 	done
+ 
++	if [ -d "$pkgdir/System/Documentation" ]; then
++		mkdir -p "$subpkgdir/System"
++		mv "$pkgdir/System/Documentation" "$subpkgdir/System/"
++	fi
++
+ 	rm -f "$subpkgdir/usr/share/info/dir"
+ 
+ 	# remove if empty, ignore error (not empty)
+-	rmdir "$pkgdir/usr/share" "$pkgdir/usr" 2>/dev/null
++	rmdir "$pkgdir/usr/share" "$pkgdir/usr" "$subpkgdir/System/Documentation" 2>/dev/null
+ 
+ 	return 0
+ }
+@@ -1252,8 +1264,8 @@
+ 	for f in $binfiles; do
+ 		srcdir=$(dirname $pkgdir/$f)
+ 		srcfile=$(basename $pkgdir/$f)
+-		dstdir=$(dirname $subpkgdir/usr/lib/debug/$f.debug)
+-		dstfile=$(basename $subpkgdir/usr/lib/debug/$f.debug)
++		dstdir=$(dirname $subpkgdir/Development/Debug/$f.debug)
++		dstfile=$(basename $subpkgdir/Development/Debug/$f.debug)
+ 		if [ ! -d $dstdir ] ; then
+ 			mkdir -p $dstdir
+ 		fi
+@@ -1289,6 +1301,9 @@
+ 			usr/lib/cmake				\
+ 			$(find . -name include -type d) 	\
+ 			$(find lib/ usr/ -name '*.[acho]' \
++			Development System/Programs/*-config	\
++			$(find . -name Headers -type d) 	\
++			$(find System/Libraries -name '*.[acho]' \
+ 				-o -name '*.prl' 2>/dev/null); do
+ 		if [ -e "$pkgdir/$i" ] || [ -L "$pkgdir/$i" ]; then
+ 			d="$subpkgdir/${i%/*}"	# dirname $i
+@@ -1298,7 +1313,7 @@
+ 		fi
+ 	done
+ 	# move *.so links needed when linking the apps to -dev packages
+-	for i in lib/*.so usr/lib/*.so; do
++	for i in lib/*.so usr/lib/*.so System/Libraries/*.so; do
+ 		if [ -L "$i" ]; then
+ 			mkdir -p "$subpkgdir"/"${i%/*}"
+ 			mv "$i" "$subpkgdir/$i" || return 1
+@@ -1315,7 +1330,7 @@
+ default_libs() {
+ 	pkgdesc="$pkgdesc (libraries)"
+ 	local dir= file=
+-	for dir in lib usr/lib; do
++	for dir in lib usr/lib System/Libraries; do
+ 		for file in "$pkgdir"/$dir/lib*.so.[0-9]*; do
+ 			[ -f "$file" ] || continue
+ 			mkdir -p "$subpkgdir"/$dir
+--- abuild-2.20.1/Makefile.orig	2014-10-05 15:10:35.000000000 +0200
++++ abuild-2.20.1/Makefile	2014-10-05 15:11:22.671632520 +0200
+@@ -85,15 +85,15 @@
+ 	for i in $(USR_BIN_FILES); do\
+ 		install -m 755 $$i $(DESTDIR)/$(bindir)/$$i;\
+ 	done
+-	chmod 4111 $(DESTDIR)/$(prefix)/bin/abuild-sudo
++	chmod 4111 $(DESTDIR)/$(bindir)/abuild-sudo
+ 	for i in adduser addgroup apk; do \
+ 		ln -fs abuild-sudo $(DESTDIR)/$(bindir)/abuild-$$i; \
+ 	done
+ 	if [ -n "$(DESTDIR)" ] || [ ! -f "/$(sysconfdir)"/abuild.conf ]; then\
+ 		cp abuild.conf $(DESTDIR)/$(sysconfdir)/; \
+ 	fi
+-	cp $(SAMPLES) $(DESTDIR)/$(prefix)/share/abuild/
+-	cp $(AUTOTOOLS_TOOLCHAIN_FILES) $(DESTDIR)/$(prefix)/share/abuild/
++	cp $(SAMPLES) $(DESTDIR)/$(datadir)/
++	cp $(AUTOTOOLS_TOOLCHAIN_FILES) $(DESTDIR)/$(datadir)/
+ 	cp functions.sh $(DESTDIR)/$(datadir)/
+ 
+ .gitignore: Makefile
