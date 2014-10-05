@@ -30,8 +30,8 @@ package() {
 dev() {
 	mkdir -p "$subpkgdir"
 	mv "$pkgdir"/Development "$subpkgdir"/
-	mkdir -p "$subpkgdir"/Development/Files "$subpkgdir"/Development/Libraries/
-	mv "$pkgdir"/System/Libraries/pkgconfig "$subpkgdir"/Development/Files/
+	mkdir -p "$subpkgdir"/Development/Common "$subpkgdir"/Development/Libraries
+	mv "$pkgdir"/System/Libraries/pkgconfig "$subpkgdir"/Development/Common/
 	mv "$pkgdir"/System/Libraries/*.a "$pkgdir"/System/Libraries/*.la "$subpkgdir"/Development/Libraries/
 }
 
