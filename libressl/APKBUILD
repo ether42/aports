@@ -9,7 +9,7 @@ makedepends_build=""
 arch="all"
 license="openssl"
 options='libtool'
-subpackages="$pkgname-dev libcrypto1.0:libcrypto libssl1.0:libssl"
+subpackages="$pkgname-dev libcrypto30.0:libcrypto libssl27.0:libssl"
 source="http://ftp.openbsd.org/pub/OpenBSD/LibreSSL/libressl-$pkgver.tar.gz"
 
 _builddir="$srcdir"/$pkgname-$pkgver
