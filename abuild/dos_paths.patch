@@ -1,5 +1,26 @@
---- abuild-2.20.1/abuild.in	2014-10-04 23:40:24.000000000 +0200
-+++ abuild-2.20.1/abuild	2014-10-05 12:38:08.451845790 +0200
+--- abuild-2.20.1/Makefile.orig	2014-10-05 15:10:35.000000000 +0200
++++ abuild-2.20.1/Makefile	2014-10-05 15:11:22.671632520 +0200
+@@ -85,15 +85,15 @@
+ 	for i in $(USR_BIN_FILES); do\
+ 		install -m 755 $$i $(DESTDIR)/$(bindir)/$$i;\
+ 	done
+-	chmod 4111 $(DESTDIR)/$(prefix)/bin/abuild-sudo
++	chmod 4111 $(DESTDIR)/$(bindir)/abuild-sudo
+ 	for i in adduser addgroup apk; do \
+ 		ln -fs abuild-sudo $(DESTDIR)/$(bindir)/abuild-$$i; \
+ 	done
+ 	if [ -n "$(DESTDIR)" ] || [ ! -f "/$(sysconfdir)"/abuild.conf ]; then\
+ 		cp abuild.conf $(DESTDIR)/$(sysconfdir)/; \
+ 	fi
+-	cp $(SAMPLES) $(DESTDIR)/$(prefix)/share/abuild/
+-	cp $(AUTOTOOLS_TOOLCHAIN_FILES) $(DESTDIR)/$(prefix)/share/abuild/
++	cp $(SAMPLES) $(DESTDIR)/$(datadir)/
++	cp $(AUTOTOOLS_TOOLCHAIN_FILES) $(DESTDIR)/$(datadir)/
+ 	cp functions.sh $(DESTDIR)/$(datadir)/
+ 
+ .gitignore: Makefile
+--- abuild-2.20.1/abuild.in.orig	2014-04-30 16:01:29.000000000 +0200
++++ abuild-2.20.1/abuild.in	2014-10-05 21:45:09.209669314 +0200
 @@ -669,7 +669,7 @@
  	done
  	postcheck "$pkgdir" "$pkgname" || return 1
@@ -103,17 +124,18 @@
  		if [ ! -d $dstdir ] ; then
  			mkdir -p $dstdir
  		fi
-@@ -1289,6 +1301,9 @@
+@@ -1288,7 +1300,9 @@
+ 			usr/lib/qt*/mkspecs			\
  			usr/lib/cmake				\
  			$(find . -name include -type d) 	\
- 			$(find lib/ usr/ -name '*.[acho]' \
-+			Development System/Programs/*-config	\
+-			$(find lib/ usr/ -name '*.[acho]' \
++			Development/* System/Programs/*-config	\
 +			$(find . -name Headers -type d) 	\
-+			$(find System/Libraries -name '*.[acho]' \
++			$(find System/Libraries/ lib/ usr/ -name '*.[acho]' \
  				-o -name '*.prl' 2>/dev/null); do
  		if [ -e "$pkgdir/$i" ] || [ -L "$pkgdir/$i" ]; then
  			d="$subpkgdir/${i%/*}"	# dirname $i
-@@ -1298,7 +1313,7 @@
+@@ -1298,7 +1312,7 @@
  		fi
  	done
  	# move *.so links needed when linking the apps to -dev packages
@@ -122,7 +144,7 @@
  		if [ -L "$i" ]; then
  			mkdir -p "$subpkgdir"/"${i%/*}"
  			mv "$i" "$subpkgdir/$i" || return 1
-@@ -1315,7 +1330,7 @@
+@@ -1315,7 +1329,7 @@
  default_libs() {
  	pkgdesc="$pkgdesc (libraries)"
  	local dir= file=
@@ -131,24 +153,3 @@
  		for file in "$pkgdir"/$dir/lib*.so.[0-9]*; do
  			[ -f "$file" ] || continue
  			mkdir -p "$subpkgdir"/$dir
---- abuild-2.20.1/Makefile.orig	2014-10-05 15:10:35.000000000 +0200
-+++ abuild-2.20.1/Makefile	2014-10-05 15:11:22.671632520 +0200
-@@ -85,15 +85,15 @@
- 	for i in $(USR_BIN_FILES); do\
- 		install -m 755 $$i $(DESTDIR)/$(bindir)/$$i;\
- 	done
--	chmod 4111 $(DESTDIR)/$(prefix)/bin/abuild-sudo
-+	chmod 4111 $(DESTDIR)/$(bindir)/abuild-sudo
- 	for i in adduser addgroup apk; do \
- 		ln -fs abuild-sudo $(DESTDIR)/$(bindir)/abuild-$$i; \
- 	done
- 	if [ -n "$(DESTDIR)" ] || [ ! -f "/$(sysconfdir)"/abuild.conf ]; then\
- 		cp abuild.conf $(DESTDIR)/$(sysconfdir)/; \
- 	fi
--	cp $(SAMPLES) $(DESTDIR)/$(prefix)/share/abuild/
--	cp $(AUTOTOOLS_TOOLCHAIN_FILES) $(DESTDIR)/$(prefix)/share/abuild/
-+	cp $(SAMPLES) $(DESTDIR)/$(datadir)/
-+	cp $(AUTOTOOLS_TOOLCHAIN_FILES) $(DESTDIR)/$(datadir)/
- 	cp functions.sh $(DESTDIR)/$(datadir)/
- 
- .gitignore: Makefile
