@@ -1,0 +1,43 @@
+# Maintainer: Tomasz Sterna <tomek@xiaoka.com>
+pkgname=libressl
+pkgver=2.0.5
+pkgrel=1
+pkgdesc="Toolkit for SSL/TLS"
+url='http://www.libressl.org/'
+depends=
+makedepends_build=""
+arch="all"
+license="openssl"
+options='libtool'
+subpackages="$pkgname-dev libcrypto30.0:libcrypto libssl27.0:libssl"
+source="http://ftp.openbsd.org/pub/OpenBSD/LibreSSL/libressl-$pkgver.tar.gz"
+
+_builddir="$srcdir"/$pkgname-$pkgver
+
+build() {
+	cd "$_builddir"
+	./configure --prefix=/usr
+	make
+}
+
+package() {
+	cd "$_builddir"
+	make DESTDIR="$pkgdir" install
+}
+
+libcrypto() {
+	pkgdesc="Crypto library from openssl"
+	replaces="openssl libcrypto"
+	mkdir -p "$subpkgdir"/usr/lib
+	mv "$pkgdir"/usr/lib/libcrypto* "$subpkgdir"/usr/lib/
+}
+
+libssl() {
+	pkgdesc="SSL shared libraries"
+	replaces="openssl"
+	mkdir -p "$subpkgdir"/usr/lib
+	mv "$pkgdir"/usr/lib/libssl* "$subpkgdir"/usr/lib/
+}
+md5sums="77b5385251e6edabc4cd74ffccc7e418  libressl-2.0.5.tar.gz"
+sha256sums="3f5463b5deb93efd2ac4e23a20612a1ccf3299a569d03880bb204c90647dfc9a  libressl-2.0.5.tar.gz"
+sha512sums="b795835eda11781666312151904f6e8b7b444cf99ff4f6d7d3fe659869257e1fee5d2883b747071aecf7c7ccb8f2268e348567a84c9a67efdb2602c744d26177  libressl-2.0.5.tar.gz"

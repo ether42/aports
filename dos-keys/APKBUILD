@@ -1,0 +1,29 @@
+# Maintainer: Tomasz Sterna <tomek@xiaoka.com>
+pkgname=dos-keys
+pkgver=0.0.1
+pkgrel=0
+pkgdesc="Public keys for D/os packages"
+url="http://d-os.org"
+arch="noarch"
+license="GPL"
+depends=""
+makedepends=""
+install=""
+subpackages=""
+replaces="dos-base"
+source="smoku-5425c590.rsa.pub"
+
+build() {
+	return 0
+}
+
+package() {
+	# copy keys for repos
+	mkdir -p "$pkgdir"/etc/apk/keys
+	install -m644 "$srcdir"/*.pub \
+		"$pkgdir"/etc/apk/keys/ || return 1
+}
+
+md5sums="d07824de176e2cc24b9e60aa8a23ae3e  smoku-5425c590.rsa.pub"
+sha256sums="3ea3e9a704687723e32a24789c2975cefc56c7157f62cbbc095eb691c34d3a02  smoku-5425c590.rsa.pub"
+sha512sums="3a857f9a1294458e4e3f1ec362dab25fa4dbfca03fcc8c969a2a31e960ba6bfcfc02e46d286600a7b3a01e14bc4956e0b432ecf4404217548952792f43feeeb7  smoku-5425c590.rsa.pub"
