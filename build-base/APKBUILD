@@ -1,0 +1,13 @@
+pkgname=build-base
+pkgver=0.3
+pkgrel=0
+url=http://dev.doslinux.org/cgit
+pkgdesc="Meta package for build base"
+depends="binutils clang make patch musl-dev " #linux-headers"
+arch="noarch"
+license=none
+
+build() {
+	# meta package
+	mkdir -p "$pkgdir"
+}

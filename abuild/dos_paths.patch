@@ -92,7 +92,7 @@
  find_scanelf_paths() {
  	local datadir="$1"
 -	local paths="$datadir/lib:$datadir/usr/lib" i= rpaths=
-+	local paths="$datadir/System/Libraries" i= rpaths=
++	local paths="$datadir/System/Libraries:$datadir/Development/Libraries" i= rpaths=
  	if [ -n "$ldpath" ]; then
  		paths="$paths:$(echo "${datadir}${ldpath}" | sed "s|:|:$datadir|g")"
  	fi
@@ -109,7 +109,7 @@
  
  	# remove if empty, ignore error (not empty)
 -	rmdir "$pkgdir/usr/share" "$pkgdir/usr" 2>/dev/null
-+	rmdir "$pkgdir/usr/share" "$pkgdir/usr" "$subpkgdir/System/Documentation" 2>/dev/null
++	rmdir -p "$pkgdir/usr/share" "$pkgdir/usr" "$subpkgdir/System/Documentation" 2>/dev/null
  
  	return 0
  }

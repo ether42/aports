@@ -1,0 +1,39 @@
+# Contributor: Natanael Copa <ncopa@alpinelinux.org>
+pkgname=patch
+pkgver=2.7.1
+pkgrel=0
+pkgdesc="Utility to apply diffs to files"
+url="http://www.gnu.org/software/patch/patch.html"
+arch="all"
+license='GPL'
+depends=
+source="ftp://ftp.gnu.org/gnu/patch/patch-$pkgver.tar.bz2"
+subpackages="$pkgname-doc"
+install=
+
+_builddir="$srcdir"/$pkgname-$pkgver
+
+build() {
+	cd "$_builddir"
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/Development \
+		--bindir=/Development/Programs \
+		--mandir=/System/Documentation \
+		|| return 1
+	make || return 1
+}
+
+package() {
+	cd "$_builddir"
+	make 	prefix="$pkgdir"/Development \
+		bindir="$pkgdir"/Development/Programs \
+		mandir="$pkgdir"/System/Documentation \
+		install
+	rm -rf "$pkgdir"/Development/lib/charset.alias
+	rmdir -p "$pkgdir"/Development/lib 2>/dev/null
+	return 0
+}
+
+md5sums="0881a7c6477862fc395f373ada0ec6b6  patch-2.7.1.tar.bz2"

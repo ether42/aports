@@ -1,0 +1,53 @@
+# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+pkgname=make
+pkgver=4.0
+pkgrel=0
+pkgdesc="GNU make utility to maintain groups of programs"
+url="http://www.gnu.org/software/make"
+arch="all"
+license="GPL3+"
+depends=""
+subpackages="$pkgname-doc"
+source="ftp://ftp.gnu.org/gnu/$pkgname/$pkgname-$pkgver.tar.bz2
+	fix-atexit-exit.patch
+	"
+
+_builddir="$srcdir"/$pkgname-$pkgver
+prepare() {
+	cd "$_builddir"
+	update_config_sub || return 1
+	for i in $source; do
+		case $i in
+		*.patch) msg $i; patch -p1 -i "$srcdir"/$i || return 1;;
+		esac
+	done
+}
+
+build() {
+	cd "$_builddir"
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/Development \
+		--bindir=/Development/Programs \
+		--includedir=/Development/Headers \
+		--mandir=/System/Documentation \
+		--infodir=/System/Documentation \
+		--disable-nls \
+		|| return 1
+	make || return 1
+	[ "$CBUILD" != "$CHOST" ] || make check || return 1
+	return 0
+}
+
+package() {
+	cd "$_builddir"
+	make DESTDIR="$pkgdir" install || return 1
+}
+
+md5sums="571d470a7647b455e3af3f92d79f1c18  make-4.0.tar.bz2
+5d7764fa6d9c0cb9764e8d4d2c77d5c3  fix-atexit-exit.patch"
+sha256sums="e60686c7afede62cc8c86ad3012cf081ea4887daf9d223ce7115703b2bb2dbdb  make-4.0.tar.bz2
+5547bdccf4e4941de9e155c8bdb01e5b9a7a8536dcdce0b277f5f5e29f416076  fix-atexit-exit.patch"
+sha512sums="82de265963cd08701491e02a4917cd2097762657257a9508119e5847050d0cb15580c163159463e822860435c5910190677d8e4aba644ba75df2895f26117376  make-4.0.tar.bz2
+da0a54038eb40a8cd8d092298fc8a6b16c33f72dc9a7739bc9bafbb0c66eb17e25f078f75010d34f0df9c62f505a3c3ab0a9795259064a9e5785d25ffbc79318  fix-atexit-exit.patch"
