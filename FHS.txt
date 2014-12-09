@@ -1,0 +1,23 @@
+/System
+  /Settings  (etc, dconf)
+  /Programs  (bin: CLI, interactive - PATH)
+  /Services  (bin: non-interactive, daemons)
+  /Files  (usr/share, usr/lib)
+  /Libraries  (*.so)
+  /State  (var)
+  /Documentation/man.*
+  /Links  ?
+    /Executables
+    /Headers
+    /Libraries
+    /Shared
+/Users  (home)
+/Applications  (AppDirs)
+/Development  (SDK)
+  /Headers  (*.h)
+  /Libraries  (*.a, *.la)
+  /Programs
+  /Common  (pkgconfig)
+/Media  (mount)
+/Depot  (shared files)
+
