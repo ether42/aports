@@ -1,0 +1,99 @@
+# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+# Contributor: Leonardo Arena <rnalrd@alpinelinux.org>
+pkgname=perl
+pkgver=5.20.1
+pkgrel=0
+pkgdesc="Larry Wall's Practical Extraction and Report Language"
+url=http://www.perl.org
+arch="all"
+license="Artistic GPL-2"
+source="http://www.cpan.org/src/5.0/perl-$pkgver.tar.gz
+	"
+options="!fhs"
+
+depends=
+subpackages="$pkgname-dev $pkgname-doc miniperl"
+
+_builddir="$srcdir/$pkgname-$pkgver"
+
+prepare() {
+	cd $_builddir
+	for i in $source; do
+		case $i in
+		*.patch) msg $i; patch -p1 -i "$srcdir"/$i || return 1;;
+		esac
+	done
+	sed -i -e 's/less -R/less/g' ./Configure
+	sed -i -e 's/libswanted="\(.*\) nsl\(.*\)"/libswanted="\1\2"/g' ./Configure
+}
+
+_privlib=/usr/share/perl5/core_perl
+_archlib=/usr/lib/perl5/core_perl
+_vendorlib=/usr/share/perl5/vendor_perl
+_vendorarch=/usr/lib/perl5/vendor_perl
+
+build() {
+	cd $_builddir
+	./Configure -des \
+		-Dcccdlflags='-fPIC' \
+		-Dcccdlflags='-fPIC' \
+		-Dccdlflags='-rdynamic' \
+		-Dprefix=/usr \
+		-Dprivlib=$_privlib \
+		-Darchlib=$_archlib \
+		-Dvendorprefix=/usr \
+		-Dvendorlib=$_vendorlib \
+		-Dvendorarch=$_vendorarch \
+		-Dsiteprefix=/usr/local \
+		-Dsitelib=/usr/local/share/perl5/site_perl \
+		-Dsitearch=/usr/local/lib/perl5/site_perl \
+		-Dlocincpth=' ' \
+		-Doptimize="${CFLAGS}" \
+		-Duselargefiles \
+		-Dusethreads \
+		-Duseshrplib \
+		-Dd_semctl_semun \
+		-Dman1dir=/usr/share/man/man1 \
+		-Dman3dir=/usr/share/man/man3 \
+		-Dinstallman1dir=/usr/share/man/man1 \
+		-Dinstallman3dir=/usr/share/man/man3 \
+		-Dman1ext='1' \
+		-Dman3ext='3pm' \
+		-Dinc_version_list="$inclist" \
+		-Dcf_by='Alpine' \
+		-Ud_csh \
+		-Dusenm \
+		|| return 1
+	make libperl.so && make || return 1
+}
+
+package() {
+	cd "$srcdir/$pkgname-$pkgver"
+	make install DESTDIR="$pkgdir"
+	if [ -n "$(find $pkgdir/usr/local -type f)" ]; then
+		error "files found under /usr/local"
+		return 1
+	fi
+}
+
+miniperl() {
+	pkgname=miniperl
+	mkdir -p "$subpkgdir"/usr/bin
+	cp "$srcdir/perl-$pkgver"/miniperl "$subpkgdir/usr/bin"
+}
+
+dev() {
+	mkdir -p "$subpkgdir"/$_privlib
+	mv "$pkgdir"/$_privlib/Encode "$subpkgdir"/$_privlib/ || return 1
+	default_dev
+	replaces="perl"
+	mkdir -p "$subpkgdir"/usr/bin
+	for i in enc2xs h2xs libnetcfg perlivp; do
+		mv "$pkgdir"/usr/bin/$i "$subpkgdir"/usr/bin/ || return 1
+	done
+}
+
+
+md5sums="7a195abb7d6769f751e90c7d30dcf2e0  perl-5.20.1.tar.gz"
+sha256sums="fef10210f9e6f4dc2d190be0aee8e1fa2af664630f1d415868d33eebca26d4b5  perl-5.20.1.tar.gz"
+sha512sums="d0c5d4fa5b4f3f88c895587b0ca51a7e1f2bef02835fb95e50162501a6a4f3b91082dcf74b32be6a43b77a910698c08d4c2979e98fa7f91f62df4db1f8219396  perl-5.20.1.tar.gz"

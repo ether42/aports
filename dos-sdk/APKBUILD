@@ -1,0 +1,17 @@
+pkgname=dos-sdk
+pkgver=0.4
+pkgrel=1
+url=http://dev.d-os.org/
+pkgdesc="D/os Software Development Kit meta package"
+depends="abuild build-base git"
+arch="noarch"
+license="GPL2"
+
+build() {
+	# meta package
+	return 0
+}
+
+package() {
+	mkdir -p "$pkgdir"
+}	

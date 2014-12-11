@@ -1,0 +1,139 @@
+# Contributor: William Pitcock <nenolod@dereferenced.org>
+pkgname=llvm
+pkgver=3.4.2
+pkgrel=0
+pkgdesc="low level virtual machine compiler system"
+arch="x86 x86_64 armhf"
+url="http://llvm.org/"
+license="UOI-NCSA"
+depends=
+depends_dev="perl"
+makedepends="$depends_dev mdocml python chrpath"
+install=
+subpackages="clang $pkgname-libs $pkgname-dev $pkgname-doc"
+rtver=3.5.0
+source="http://llvm.org/releases/$pkgver/llvm-$pkgver.src.tar.gz
+	http://llvm.org/releases/$pkgver/cfe-$pkgver.src.tar.gz
+	http://llvm.org/releases/$rtver/compiler-rt-$rtver.src.tar.xz
+	llvm-dos-linux.patch
+	llvm-musl.patch
+	compiler-rt-musl_compat.patch
+	"
+
+_builddir="$srcdir"/build
+_srcdir="$srcdir"/"$pkgname-$pkgver.src"
+
+prepare() {
+	msg "Preparing CLANG sources..."
+	mv "$srcdir"/cfe-$pkgver.src \
+		"$srcdir"/$pkgname-$pkgver.src/tools/clang || return 1
+	mv "$srcdir"/compiler-rt-$rtver.src \
+		"$srcdir"/$pkgname-$pkgver.src/projects/compiler-rt || return 1
+
+	msg "Patching LLVM core..."
+	cd "$srcdir"/$pkgname-$pkgver.src || return 1
+	update_config_sub || return 1
+	for i in $source; do
+		case $i in
+		*.patch)
+			msg "Applying $i..."
+			patch -s -p1 -N -i "$srcdir"/$i || return 1
+			;;
+		esac
+	done
+	# fails to link
+	rm ./unittests/Support/formatted_raw_ostream_test.cpp
+}
+
+build() {
+	mkdir "$_builddir"
+	cd "$_builddir"
+
+	sed -i -e 's/groff /mandoc /' ../$pkgname-$pkgver.src/tools/clang/docs/tools/Makefile
+
+	export CBUILD
+	sed -i -e '/case "\${UNAME_MACHINE}:\${UNAME_SYSTEM}:\${UNAME_RELEASE}:\${UNAME_VERSION}" in/i \' \
+	        -e 'if [ x != "x$CBUILD" ]; then echo "$CBUILD"; exit; fi' \
+		../$pkgname-$pkgver.src/autoconf/config.guess \
+		|| return 1
+
+	# we do not have dlvsym
+	sed -i -e 's/!defined(__ANDROID__)/defined(__ANDROID__)/' \
+		../$pkgname-$pkgver.src/projects/compiler-rt/lib/interception/interception_linux.cc \
+		|| return 1
+
+	# no full-.a lib
+	sed -i -e 's/full-[^ ]*a //' \
+		../$pkgname-$pkgver.src/tools/clang/runtime/compiler-rt/Makefile \
+		|| return 1
+
+	$_srcdir/configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--mandir=/usr/share/man \
+		--infodir=/usr/share/info \
+		--enable-shared \
+		--enable-optimized \
+		|| return 1
+
+	# configure gets it wrong. We do have error_t
+	sed -i -e 's/.*undef HAVE_ERROR_T.*/#define HAVE_ERROR_T 1/'  \
+		-e '/define error_t/d' \
+		./include/llvm/Config/config.h || return 1
+
+	make || return 1
+}
+
+package() {
+	cd "$_builddir"
+	make DESTDIR="$pkgdir" install
+
+	#relocate docs
+	mkdir -p "$pkgdir"/usr/share/doc
+	mv "$pkgdir"/usr/docs/llvm "$pkgdir"/usr/share/doc/ || return 1
+	rmdir "$pkgdir"/usr/docs || return 1
+	chrpath -d "$pkgdir"/usr/bin/* "$pkgdir"/usr/lib/*.so
+}
+
+clang() {
+	pkgdesc="A C language family front-end for LLVM"
+	mkdir -p "$subpkgdir"/usr/bin \
+		"$subpkgdir"/usr/lib "$subpkgdir"/usr/share/clang
+	mv "$pkgdir"/usr/bin/clang* "$pkgdir"/usr/bin/c-index-test \
+		"$subpkgdir"/usr/bin/ || return 1
+	mv "$pkgdir"/usr/lib/clang \
+		"$pkgdir"/usr/lib/libclang.so \
+		"$subpkgdir"/usr/lib/ || return 1
+	cp -r "$_srcdir"/tools/clang/tools/scan-build "$subpkgdir"/usr/share/clang/scan-build
+	cp -r "$_srcdir"/tools/clang/tools/scan-view "$subpkgdir"/usr/share/clang/scan-view
+
+	ln -s /usr/share/clang/scan-build/scan-build "$subpkgdir"/usr/bin/scan-build
+	ln -s /usr/share/clang/scan-view/scan-view "$subpkgdir"/usr/bin/scan-view
+}
+
+libs() {
+	pkgdesc="LLVM shared libraries"
+	mkdir -p "$subpkgdir"/usr/lib/
+	mv "$pkgdir"/usr/lib/*.so "$subpkgdir"/usr/lib/
+}
+
+md5sums="a20669f75967440de949ac3b1bad439c  llvm-3.4.2.src.tar.gz
+87945973b7c73038871c5f849a818588  cfe-3.4.2.src.tar.gz
+02624d2a9144278c3808c00dbbab56c8  compiler-rt-3.5.0.src.tar.xz
+924705cfd9ed4162c7c3df60ccd66ea1  llvm-dos-linux.patch
+69892689105e1698988b5be3a763b511  llvm-musl.patch
+2ef17cdeb616cf7baed03d745413562a  compiler-rt-musl_compat.patch"
+sha256sums="17038d47069ad0700c063caed76f0c7259628b0e79651ce2b540d506f2f1efd7  llvm-3.4.2.src.tar.gz
+5ba6f5772f8d00f445209356a7daf83c5bca2da5acd10de517ad2359ae95bc10  cfe-3.4.2.src.tar.gz
+a4b3e655832bf8d9a357ea2c771db347237460e131988cbb96cda40ff39a8136  compiler-rt-3.5.0.src.tar.xz
+aff3753b85f5ba0a081b5823fd3bb1133eecf27ded4912f7cce5a74d94272654  llvm-dos-linux.patch
+69bf4a102d50e31853371883da1062560bdf7894bdb289c0a9522a214e0473c8  llvm-musl.patch
+f9426482b30a9853741315a608321deea7ab4d558b35ef21c29b2ec2a0a45f28  compiler-rt-musl_compat.patch"
+sha512sums="6c1453f7d9d9110257db3574cc4f6227fed8938705cbb09851ac09a868089b48f1556a1b6e758aff6d97520b08b5605d3ed20411ad9dd22cdc573d62176905f0  llvm-3.4.2.src.tar.gz
+e01fa8e312e9b3b7b3cb572ac21349161aaa50078ecfe7bded273b75db4a0c44acde524f8fdfcbeec54c61eeeb8339e9917d1f205a8fda18e34fe7ccbe89c36d  cfe-3.4.2.src.tar.gz
+862cce2d6b398bd1a8399496a547e6ab976a31f676528beebfbea5fd7dc54aa72e1c25deefa12f6167096521eba74090565b0168806451da02ddac04e922fc48  compiler-rt-3.5.0.src.tar.xz
+b615493efdbf681d564a64519d0afb39ee550faa8a3871a90061f0ab8b5e8d4e95f013228c39adca7689580d4ea9871a6a9609ea0b3a60b21f23c796238862f3  llvm-dos-linux.patch
+3049ad58c65791549cc696edc5920a1a2fabf87808c92a4c3fc5b70ee88745df63e2f0fd38be50e9df2055d05d922d2ccb3fe2542e9f31b4133c47c2f2b0fa93  llvm-musl.patch
+0e779e32e8bc20bb2a9d999bcc100cc57bee60c4179e906ec7b728d1251179457b0ffef05a5dc2cb7204b43738932fdb07b93efa6bd1cea3b56f5c3eea429d0d  compiler-rt-musl_compat.patch"

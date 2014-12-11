@@ -1,0 +1,42 @@
+# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+pkgname=bison
+pkgver=3.0.2
+pkgrel=0
+pkgdesc="The GNU general-purpose parser generator"
+arch="all"
+license="GPL3+"
+url="http://www.gnu.org/software/bison/bison.html"
+makedepends="perl"
+depends="m4"
+source="ftp://ftp.gnu.org/gnu/bison/${pkgname}-${pkgver}.tar.xz"
+subpackages="$pkgname-doc"
+
+_builddir="$srcdir/$pkgname-$pkgver"
+prepare() {
+	cd "$_builddir"
+}
+
+build() {
+	cd "$_builddir"
+	LIBS="-lrt" ./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--datadir=/usr/share \
+		--infodir=/usr/share/info \
+		--mandir=/usr/share/man \
+		|| return 1
+	make || return 1
+}
+
+package() {
+	cd "$_builddir"
+	make DESTDIR="$pkgdir" install || return 1
+	rm -rf "$pkgdir"/usr/lib/charset.alias
+	rmdir -p "$pkgdir"/usr/lib 2>/dev/null
+	return 0
+}
+
+md5sums="146be9ff9fbd27497f0bf2286a5a2082  bison-3.0.2.tar.xz"
+sha256sums="a2c3e8528bdb50567d6fa26deeb493dc5ccd7e277b865251608a9e43ac928f3c  bison-3.0.2.tar.xz"
+sha512sums="d0234a890c6e6d18f7ce67a44c61ce2726d18155b7074d45a8f27e6f4ef34f3eafc0a8f88d3fd2437be9c9a45e48c044a0f1098e55229dd8a6e49845f4f59317  bison-3.0.2.tar.xz"
