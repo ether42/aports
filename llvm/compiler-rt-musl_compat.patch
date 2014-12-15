@@ -21,3 +21,14 @@
 +#SubDirs += sanitizer_common
 +#SubDirs += tsan
 +#SubDirs += ubsan
+--- a/projects/compiler-rt/lib/interception/interception_linux.cc	2014-02-24 09:37:41.000000000 +0100
++++ b/projects/compiler-rt/lib/interception/interception_linux.cc	2014-12-15 23:20:03.149596829 +0100
+@@ -24,7 +24,7 @@
+   return real == wrapper;
+ }
+ 
+-#if !defined(__ANDROID__)  // android does not have dlvsym
++#if 0
+ void *GetFuncAddrVer(const char *func_name, const char *ver) {
+   return dlvsym(RTLD_NEXT, func_name, ver);
+ }
