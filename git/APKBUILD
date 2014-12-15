@@ -1,0 +1,189 @@
+# Contributor: Natanael Copa <ncopa@alpinelinux.org>
+pkgname=git
+pkgver=2.2.0
+pkgrel=0
+pkgdesc="A distributed version control system"
+url="http://git.or.cz/"
+arch="all"
+license="GPL2+"
+depends=
+replaces="git-perl"
+
+# note that order matters
+subpackages="
+	perl-$pkgname-svn:_perl_git_svn
+	perl-$pkgname:_perl_git
+	$pkgname-svn
+	$pkgname-email
+	$pkgname-cvs
+	$pkgname-p4
+	$pkgname-daemon
+	$pkgname-gitweb
+	$pkgname-subtree
+	$pkgname-perl:_git_perl
+	"
+
+makedepends="zlib-dev libressl-dev curl-dev perl-dev"
+source="git-$pkgver.tar.gz::https://github.com/git/git/archive/v$pkgver.tar.gz
+	bb-tar.patch
+	git-daemon.initd
+	git-daemon.confd
+	"
+
+_makeopts="
+	NO_GETTEXT=YesPlease
+	NO_NSEC=YesPlease
+	NO_TCLTK=YesPlease
+	NO_SVN_TESTS=YesPlease
+	NO_EXPAT=YesPlease"
+
+_gitcoredir=/usr/libexec/git-core
+
+prepare() {
+	cd "$srcdir"/$pkgname-$pkgver
+	for i in $source; do
+		case $i in
+		*.patch) msg $i; patch -p1 -i "$srcdir"/$i || return 1;;
+		esac
+	done
+}
+
+build() {
+	cd "$srcdir"/$pkgname-$pkgver
+	make prefix=/usr DESTDIR="$pkgdir" $_makeopts || return 1
+}
+
+package() {
+	cd "$srcdir"/$pkgname-$pkgver
+	make prefix=/usr \
+		DESTDIR="$pkgdir" \
+		INSTALLDIRS=vendor \
+		$_makeopts install || return 1
+	mkdir -p "$pkgdir"/var/git
+	install -Dm755 "$srcdir"/git-daemon.initd \
+		"$pkgdir"/etc/init.d/git-daemon || return 1
+	install -Dm644 "$srcdir"/git-daemon.confd \
+		"$pkgdir"/etc/conf.d/git-daemon || return 1
+}
+
+_perl_git_svn() {
+	pkgdesc="Perl interface to Git::SVN"
+	depends="git=$pkgver-r$pkgrel"
+	replaces="git-perl"
+	eval local `perl -V:vendorlib`
+	mkdir -p "$subpkgdir"/$vendorlib/Git
+	mv "$pkgdir"/$vendorlib/Git/SVN* "$subpkgdir"/$vendorlib/Git/
+}
+
+_perl_git() {
+	pkgdesc="Perl interface to Git"
+	depends="git=$pkgver-r$pkgrel perl-error"
+	replaces="git-perl"
+	eval local `perl -V:vendorlib`
+	eval local `perl -V:vendorarch`
+	for i in $vendorlib $vendorarch; do
+		mkdir -p "$subpkgdir"/${i%/*} || return 1
+		mv "$pkgdir"/$i "$subpkgdir"/$i || return 1
+	done
+}
+
+email() {
+	depends="perl perl-git=$pkgver-r$pkgrel perl-net-smtp-ssl
+		perl-authen-sasl"
+	pkgdesc="Git tools for sending email"
+	replaces="git"
+	mkdir -p "$subpkgdir"/$_gitcoredir
+	mv "$pkgdir"/$_gitcoredir/*email* "$subpkgdir"/$_gitcoredir
+}
+
+
+svn() {
+        depends="perl perl-git-svn=$pkgver-r$pkgrel perl-subversion
+		perl-term-readkey"
+        pkgdesc="Subversion support for git"
+        arch="noarch"
+        replaces=""
+
+        mkdir -p "$subpkgdir"/$_gitcoredir
+        mv "$pkgdir"/$_gitcoredir/git-svn "$subpkgdir"/$_gitcoredir/
+}
+
+cvs() {
+	pkgdesc="Git tools for importing CVS repositories"
+	depends="perl perl-git=$pkgver-r$pkgrel cvs perl-dbd-sqlite"
+	replaces="git-perl"
+	mkdir -p "$subpkgdir"/usr/bin "$subpkgdir"/$_gitcoredir
+	mv "$pkgdir"/usr/bin/git-cvs* "$subpkgdir"/usr/bin/ || return 1
+	mv "$pkgdir"/$_gitcoredir/*cvs* "$subpkgdir"/$_gitcoredir \
+		|| return 1
+}
+
+p4() {
+	pkgdesc="Git tools for working with Perforce depots"
+	depends="git=$pkgver-r$pkgrel"
+	replaces="git"
+	mkdir -p "$subpkgdir"/$_gitcoredir/mergetools
+	mv "$pkgdir"/$_gitcoredir/*p4* "$subpkgdir"/$_gitcoredir/ || return 1
+	mv "$pkgdir"/$_gitcoredir/mergetools/*p4* \
+		"$subpkgdir"/$_gitcoredir/mergetools/ || return 1
+}
+
+daemon() {
+	pkgdesc="Git protocol daemon"
+	depends="git=$pkgver-r$pkgrel"
+        replaces="git"
+	mkdir -p "$subpkgdir"/$_gitcoredir
+	mv "$pkgdir"/$_gitcoredir/git-daemon "$subpkgdir"/$_gitcoredir \
+		|| return 1
+	mv "$pkgdir"/etc "$subpkgdir"/ || return 1
+}
+
+gitweb() {
+	pkgdesc="Simple web interface to git repositories"
+	depends="git=$pkgver-r$pkgrel perl"
+	replaces="git"
+	mkdir -p "$subpkgdir"/usr/share
+	mv "$pkgdir"/usr/share/gitweb "$subpkgdir"/usr/share/
+}
+
+subtree() {
+	depends="git=$pkgver-r$pkgrel"
+	pkgdesc="Split git repository into subtrees"
+	arch="noarch"
+	replaces=""
+
+	cd "$srcdir"/$pkgname-$pkgver/contrib/subtree
+	make prefix=/usr DESTDIR="$pkgdir" || return 1
+	make install prefix=/usr DESTDIR="$subpkgdir"
+}
+
+# catch-the-rest of stuff that needs perl
+_git_perl() {
+	depends="git=$pkgver-r$pkgrel perl-git=$pkgver-r$pkgrel perl"
+	pkgdesc="Additional Git commands that requires perl"
+	arch="noarch"
+	replaces=""
+
+	mkdir -p "$subpkgdir"/usr/lib
+	mv "$pkgdir"/usr/lib/perl* "$subpkgdir"/usr/lib/
+	cd "$pkgdir"
+	find -type f | xargs file --mime-type | grep perl | cut -d: -f1| while read f; do
+		mkdir -p "$subpkgdir"/${f%/*}
+		mv "$f" "$subpkgdir"/${f%/*}
+	done
+	find "$subpkgdir" -name perllocal.pod -delete
+}
+
+
+md5sums="f6cd784a98bcfa90d73acfe505c70dbf  git-2.2.0.tar.gz
+e63a201556c4f089de790805c09a2e5b  bb-tar.patch
+53546650670c0ab8858e91474e5ffee9  git-daemon.initd
+2258e95d389ccc6de0b5111d53d9eed6  git-daemon.confd"
+sha256sums="e15bd155cc84e27fbccdced6a82fd9f51ef0151635c797587e06ed2a6a47a851  git-2.2.0.tar.gz
+cb6319f47d81605e199771350154cbed0a6e85ef9042a689f2b405c64039f49c  bb-tar.patch
+817cd58dcb9a5ff32759d2132bb805a5dd34ad6fa0b0a5cbe4ab8786f3b7c0d9  git-daemon.initd
+aaa80bd059db549dadf4c4e27a9aa41a4b5def844f8e563c493bc8513dcd981e  git-daemon.confd"
+sha512sums="a92dd0ff8b5d1adb75ad6924496547375f56e508bb1f31d3e9862c6eedd9885da0b73323dce537e5dc96d93b963c396f428395be3cc77ed6ab32752f0328a671  git-2.2.0.tar.gz
+6fa088a753c2a697e8dbef2032ed63e8c2a0553a41cff2fcff893c2f35c51d2c697054cc921c23ee606f77b93d0f340df85220b15e1c470bd352f7fba3986cd0  bb-tar.patch
+47f35d1553408236502f936d0ce5dbc6c44b6593ad5ef9ddebbfd8dbca5f968c21452df7053ac271445830d36a147a7124e2ea1cf9fb98340d975fdb0346011a  git-daemon.initd
+9640f8078d68ed2678e5249da3f946fc21f50e858b94127a4221de73c6132101afcd46bc1fe33861e9a7f731c0dc9591915b8ebf376b8e690cd7135703966509  git-daemon.confd"

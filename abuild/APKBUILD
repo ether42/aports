@@ -1,0 +1,62 @@
+# Contributor: Natanael Copa <ncopa@alpinelinux.org>
+pkgname=abuild
+pkgver=2.21.0
+_ver=${pkgver%_git*}
+pkgrel=0
+pkgdesc="Script to build Alpine Packages"
+url="http://git.alpinelinux.org/cgit/abuild/"
+arch="all"
+license="GPL2"
+depends="fakeroot sudo pax-utils libressl apk-tools>=2.0.7-r1 musl-utils"
+if [ "$CBUILD" = "$CHOST" ]; then
+	depends="$depends curl"
+fi
+makedepends_build="pkgconfig"
+makedepends_host="libressl-dev"
+makedepends="$makedepends_host $makedepends_build"
+install="$pkgname.pre-install $pkgname.pre-upgrade"
+subpackages="apkbuild-cpan:cpan"
+options="suid"
+pkggroups="abuild"
+source="http://dev.alpinelinux.org/archive/abuild/abuild-$pkgver.tar.xz
+	"
+
+_builddir="$srcdir/$pkgname-$_ver"
+prepare() {
+	cd "$_builddir"
+	for i in $source; do
+		case $i in
+		*.patch)
+			msg "Applying $i"
+			patch -p1 -i "$srcdir"/$i || return 1
+			;;
+		esac
+	done
+	sed -i -e "/^CHOST=/s/=.*/=$CHOST/" abuild.conf
+}
+
+build() {
+	cd "$_builddir"
+	make || return 1
+}
+
+package() {
+	cd "$_builddir"
+	make install DESTDIR="$pkgdir" || return 1
+	# buildrepo is provided by lua-aports now
+	rm "$pkgdir"/usr/bin/buildrepo || return 1
+	install -m 644 abuild.conf "$pkgdir"/etc/abuild.conf || return 1
+	install -d -m 775 -g abuild "$pkgdir"/var/cache/distfiles || return 1
+}
+
+cpan() {
+	pkgdesc="Script to generate perl APKBUILD from CPAN"
+	depends="perl perl-libwww perl-json"
+	arch="noarch"
+	mkdir -p "$subpkgdir"/usr/bin
+	mv "$pkgdir"/usr/bin/apkbuild-cpan "$subpkgdir"/usr/bin/
+}
+
+md5sums="126cbde6e4fdf537571a03a97d01d348  abuild-2.21.0.tar.xz"
+sha256sums="08689cbf8818c81d9e52e3397529adcb0e279a21d33dfe4f0678d0ef778767f3  abuild-2.21.0.tar.xz"
+sha512sums="b304dbb82563ec8ae23376c17ee27b3d49e9c1b74bd14b7a912ca88239ed3c7b2fabeb6209a6d4485c6dbab8491abb8b42f801f5fd9310691da60e630061646b  abuild-2.21.0.tar.xz"
