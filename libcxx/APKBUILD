@@ -1,0 +1,48 @@
+# Contributor: Jonathan Laver <jonathan.laver@gmail.com>
+
+pkgname=libcxx
+pkgver=3.5.0
+pkgrel=1
+pkgdesc="C++ standard library targeting C++0X"
+arch="all"
+url="http://libcxx.llvm.org/"
+license="MIT"
+depends=
+makedepends="clang"
+source="http://llvm.org/releases/$pkgver/libcxx-$pkgver.src.tar.xz
+	libcxx-musl_compat.patch"
+
+prepare() {
+	cd "$srcdir"/$pkgname-$pkgver.src
+	for i in $source; do
+		case $i in
+		*.patch) msg $i; patch -p1 -i "$srcdir"/$i || return 1;;
+		esac
+	done
+}
+
+build() {
+  cd "$srcdir"/$pkgname-$pkgver.src || return 1
+
+  cd lib
+  CC=clang CXX=clang++ TRIPLE=$CHOST ./buildit
+}
+
+package() {
+  cd "$srcdir"/$pkgname-$pkgver.src
+  mkdir -p ${pkgdir}/usr/include
+  mkdir -p ${pkgdir}/usr/lib
+  install lib/libc++.so.1.0 ${pkgdir}/usr/lib/libc++.so.1.0
+  ln -s libc++.so.1.0 ${pkgdir}/usr/lib/libc++.so.1
+  ln -s libc++.so.1.0 ${pkgdir}/usr/lib/libc++.so
+  rm include/complex.h include/tgmath.h  # conflicts with musl
+  install include/* ${pkgdir}/usr/include
+  install -Dm644 LICENSE.TXT "$pkgdir/usr/share/licenses/${pkgname}/LICENSE"
+}
+
+md5sums="d7b72d65307c677e1ed29a9c425e0421  libcxx-3.5.0.src.tar.xz
+2d9b45916346be499f280f35b8f810af  libcxx-musl_compat.patch"
+sha256sums="8045da845a63e50c201939eda8290d45e5752a9385d4d626214300d4a4d0b1c0  libcxx-3.5.0.src.tar.xz
+678e95008a7cce45fb15ae10763f5cb5ea52a74928695c0260060cac441a95d5  libcxx-musl_compat.patch"
+sha512sums="9d48e42836edebc146f7ca4067c733d4bcb8f2f19f20ad44a9d8db570df2fd59da246300a52385d1398292c850db58b4e39432944a3833de7463753448702d17  libcxx-3.5.0.src.tar.xz
+b77297318cd73a34154576e97fb80192a4ba400351841675f9e1c87346c0057845a811a62c945918c277550a146e8096df415b515ba66f1798a97724e4192a13  libcxx-musl_compat.patch"
