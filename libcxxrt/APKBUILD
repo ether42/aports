@@ -1,0 +1,61 @@
+# Maintainer: Your Name <youremail@domain.com>
+pkgname=libcxxrt
+pkgver=4.0.10
+pkgrel=1
+pkgdesc="C++ Runtime from PathScale, FreeBSD and NetBSD"
+arch="all"
+url="https://github.com/pathscale/libcxxrt"
+license="BSD2"
+depends=
+makedepends=
+source="https://github.com/pathscale/libcxxrt/archive/${pkgver}.tar.gz
+	Makefile
+	Makefile.test"
+
+prepare() {
+  cd "$srcdir/$pkgname-$pkgver" || return 1
+  # Copy main Makefile
+  cp "${srcdir}/Makefile" 'src/Makefile'
+
+  # Copy test Makefile
+  cp "${srcdir}/Makefile.test" 'test/Makefile'
+}
+
+build() {
+  cd "$srcdir/$pkgname-$pkgver/src" || return 1
+  export LDFLAGS="$LDFLAGS -Wl,-z,defs"
+  export CC=${CC-gcc}
+  export CXX=${CXX-g++}
+  export AR=${AR-ar}
+  LIBS="-ldl -lgcc_s -lc" make shared
+  make static
+}
+
+check() {
+  cd "$srcdir/$pkgname-$pkgver/test" || return 1
+  LD_LIBRARY_PATH="${PWD}/../src:${LD_LIBRARY_PATH}" \
+    LIBS="-L\"${PWD}/../src\" -lcxxrt -lunwind -ldl -lc" \
+    make check
+}
+
+package() {
+  cd "$srcdir/$pkgname-$pkgver" || return 1
+  install -Dm644 LICENSE "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
+  install -Dm644 COPYRIGHT "${pkgdir}/usr/share/licenses/${pkgname}/COPYRIGHT"
+  install -Dm755 'src/libcxxrt.so' "${pkgdir}/usr/lib/libcxxrt.so"
+  install -Dm644 'src/libcxxrt.a' "${pkgdir}/usr/lib/libcxxrt.a"
+  #install -Dm644 'src/unwind.h' "${pkgdir}/usr/include/libcxxrt/unwind.h"
+  #install -Dm644 'src/unwind-arm.h' "${pkgdir}/usr/include/libcxxrt/unwind-arm.h"
+  #install -Dm644 'src/unwind-itanium.h' \
+  #  "${pkgdir}/usr/include/libcxxrt/unwind-itanium.h"
+  #install -Dm644 'src/cxxabi.h' "${pkgdir}/usr/include/libcxxrt/cxxabi.h"
+}
+md5sums="5ed8a94426b318169af9c82632098741  4.0.10.tar.gz
+192cc73647302638cf282db233420a50  Makefile
+19a71de8c1c31ada77143fff825312d3  Makefile.test"
+sha256sums="c85ab9defdaf8d04ca66ac0eb86841667ffe8e3bacd161fa7a3bb1d971b93d6a  4.0.10.tar.gz
+868714ac74fae3d3a4b21efff691d89d38df4b00052c8e788b4188de189ef29e  Makefile
+af6cadd483849ae47f6ca6db3dfe03df8d5f8437c445f0f9a7fdcfb182fe88e1  Makefile.test"
+sha512sums="51ea1992c01da6ed5fb0a8de81424bc9e09540b8ec63336ff59ce3517211c556a4a99bc843019950a619e94730b88b0353454b1020fc0677562f4e2b74fb14ec  4.0.10.tar.gz
+acb4b2855ea3912db0d3a26c7f8e7703b865f7e6f17b22a3654d9ac10633fc25fae3ba3995f0f33c106f4eba14ca897e8c6256e339e4d7f1393d8efdee7f4ef4  Makefile
+fc93c26e4df1c5eca2f99ad3058e2d129fa85a876c9d3d6fcc9e456f397455ebd136b88b3c0ed8d27003dc7a00a985094b6c711fb34316d9fef39e1ab2aadaba  Makefile.test"
