@@ -9,7 +9,7 @@ url="http://llvm.org/"
 license="UOI-NCSA"
 depends=
 depends_dev="perl"
-makedepends="$depends_dev mdocml python chrpath"
+makedepends="$depends_dev mdocml python chrpath libcxx-dev"
 install=
 subpackages="clang $pkgname-dev $pkgname-doc $pkgname-libs"
 source="http://llvm.org/releases/$pkgver/llvm-$pkgver.src.tar.xz
@@ -37,7 +37,7 @@ prepare() {
 		case $i in
 		*.patch)
 			msg "Applying $i..."
-			patch -s -p1 -N -i "$srcdir"/$i || return 1
+			patch -p1 -N -i "$srcdir"/$i || return 1
 			;;
 		esac
 	done
@@ -56,8 +56,9 @@ build() {
 	        -e 'if [ x != "x$CBUILD" ]; then echo "$CBUILD"; exit; fi' \
 		../$pkgname-$pkgver.src/autoconf/config.guess \
 		|| return 1
-
-	export CHOST=x86_64-dos-linux-musl
+	sed -i -e '/^CompilerTargetTriple :=/{s/:=.*/:= '$CHOST'/;n;d}' \
+		../$pkgname-$pkgver.src/projects/compiler-rt/make/platform/clang_linux.mk \
+		|| return 1
 
 	$_srcdir/configure \
 		--build=$CBUILD \
@@ -66,6 +67,7 @@ build() {
 		--sysconfdir=/etc \
 		--mandir=/usr/share/man \
 		--infodir=/usr/share/info \
+		--enable-libcpp \
 		--enable-shared \
 		--enable-optimized \
 		|| return 1
@@ -75,12 +77,12 @@ build() {
 		-e '/define error_t/d' \
 		./include/llvm/Config/config.h || return 1
 
-	make || return 1
+	make PM=$JOBS || return 1
 }
 
 package() {
 	cd "$_builddir"
-	make DESTDIR="$pkgdir" install
+	make DESTDIR="$pkgdir" install || return 1
 
 	#relocate docs
 	mkdir -p "$pkgdir"/usr/share/doc
@@ -114,18 +116,18 @@ libs() {
 md5sums="d6987305a1a0e58e128c1374cd3b8fef  llvm-3.5.0.src.tar.xz
 27718dd13c7df83e15f997116bbb4aef  cfe-3.5.0.src.tar.xz
 02624d2a9144278c3808c00dbbab56c8  compiler-rt-3.5.0.src.tar.xz
-f1e8b53c00636df5f2798491543bdd0a  llvm-dos-linux.patch
+d8e7532f6fa9e215e6d5562a4265747d  llvm-dos-linux.patch
 832e665e4972afb94fb6c976a7e35c69  llvm-musl.patch
 12223082fec06d2eb30245983dd21326  compiler-rt-musl_compat.patch"
 sha256sums="28e199f368ef0a4666708f31c7991ad3bcc3a578342b0306526dd35f07595c03  llvm-3.5.0.src.tar.xz
 fc80992e004b06f6c7afb612de1cdaa9ac9d25811c55f94fcf7331d9b81cdb8b  cfe-3.5.0.src.tar.xz
 a4b3e655832bf8d9a357ea2c771db347237460e131988cbb96cda40ff39a8136  compiler-rt-3.5.0.src.tar.xz
-70839cae01f1f25131f9f37111002e7aec828d79a9628867de35be228f297e1e  llvm-dos-linux.patch
+bea406bf84b6f6d4a23b59ebaef8161c8808248f9d7972c05b48d42ec1d1edee  llvm-dos-linux.patch
 1e4c4d9e2d76719c2fedc6fe1ce03e59a16521bdb2562e84255a82d510a4f894  llvm-musl.patch
 3dc5c3f0255434185033ca516a6b831257fa3d526e7898d2ca670eb311bd6ee8  compiler-rt-musl_compat.patch"
 sha512sums="b4d0f325dbdb0a8f10e5fd031954ef4b1971d8f99f4e4b53834801a2b74a7acde3f77c655c8355b407424b363edfb10f71d85fc370356dc52af5c636a1bba197  llvm-3.5.0.src.tar.xz
 b26a5e2cd81c150607c23b22fafc0d9c7f12b83b45e476b8e75bf5e99d42be7c98ffeac7349df664f01b00900864a01429860b298e48961861377a4b2daf3e49  cfe-3.5.0.src.tar.xz
 862cce2d6b398bd1a8399496a547e6ab976a31f676528beebfbea5fd7dc54aa72e1c25deefa12f6167096521eba74090565b0168806451da02ddac04e922fc48  compiler-rt-3.5.0.src.tar.xz
-02705d5bd1bfe55be9366996b92959292cca8db8c118334347edb64e0ff728e2eb8d824bcf34a8cc3867645fd2b1c8c53ba053183be10591c6329d47e92954d6  llvm-dos-linux.patch
+2bcfe9d1715524a0fa7649d0debd77db25729e2a1b0412b423f0589d176d1e1845228e26fa6504802870339438103a736fedb2672097295e654f9616c1d810ed  llvm-dos-linux.patch
 e9531f86521628a1f0b73e15da55c6d51c7283a0239bc481b89a73c5195ae605b6680e75cbcd9197b71ceab534082f86e0e4d39701edcbe9195cc01df97285b9  llvm-musl.patch
 e68bc5a5b1402486d3ae2f9c5909bd98ac411a2abed48fb6756e95839111bbb23f0dbf511873637dd73276da62d084797ac19b78a4cdac81f7ce945200d830df  compiler-rt-musl_compat.patch"

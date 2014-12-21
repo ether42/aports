@@ -24,9 +24,6 @@ prepare() {
 build() {
   cd "$srcdir/$pkgname-$pkgver/src" || return 1
   export LDFLAGS="$LDFLAGS -Wl,-z,defs"
-  export CC=${CC-gcc}
-  export CXX=${CXX-g++}
-  export AR=${AR-ar}
   LIBS="-ldl -lgcc_s -lc" make shared
   make static
 }
@@ -51,11 +48,11 @@ package() {
   #install -Dm644 'src/cxxabi.h' "${pkgdir}/usr/include/libcxxrt/cxxabi.h"
 }
 md5sums="5ed8a94426b318169af9c82632098741  4.0.10.tar.gz
-192cc73647302638cf282db233420a50  Makefile
+63a4b44cbfd296c56025fc49a5de1101  Makefile
 19a71de8c1c31ada77143fff825312d3  Makefile.test"
 sha256sums="c85ab9defdaf8d04ca66ac0eb86841667ffe8e3bacd161fa7a3bb1d971b93d6a  4.0.10.tar.gz
-868714ac74fae3d3a4b21efff691d89d38df4b00052c8e788b4188de189ef29e  Makefile
+179d06df64021d4ca8fe2ff5cefe6167736a8e324c62c37674b3e82366a9eecd  Makefile
 af6cadd483849ae47f6ca6db3dfe03df8d5f8437c445f0f9a7fdcfb182fe88e1  Makefile.test"
 sha512sums="51ea1992c01da6ed5fb0a8de81424bc9e09540b8ec63336ff59ce3517211c556a4a99bc843019950a619e94730b88b0353454b1020fc0677562f4e2b74fb14ec  4.0.10.tar.gz
-acb4b2855ea3912db0d3a26c7f8e7703b865f7e6f17b22a3654d9ac10633fc25fae3ba3995f0f33c106f4eba14ca897e8c6256e339e4d7f1393d8efdee7f4ef4  Makefile
+d0994d7b5ef1d956be0923e1e8c98ed0a49e20eb0461301983cffef5e23345a707ffda50efcd67770ace5697960ac3dd8fed22d0aa1b2ee4f1044abebef2a60b  Makefile
 fc93c26e4df1c5eca2f99ad3058e2d129fa85a876c9d3d6fcc9e456f397455ebd136b88b3c0ed8d27003dc7a00a985094b6c711fb34316d9fef39e1ab2aadaba  Makefile.test"

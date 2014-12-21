@@ -1,0 +1,53 @@
+diff -ur abuild.orig/abuild.conf abuild-2.21.0/abuild.conf
+--- abuild.orig/abuild.conf	2014-10-30 10:49:50.000000000 +0100
++++ abuild-2.21.0/abuild.conf	2014-12-29 23:48:14.380325367 +0100
+@@ -1,10 +1,10 @@
+-CHOST=i486-alpine-linux-musl
++CHOST=i486-dos-linux-musl
+ 
+ # for x86_64 we want:
+-# CHOST=x86_64-alpine-linux-musl
++# CHOST=x86_64-dos-linux-musl
+ 
+ # for powerpc we want:
+-# CHOST=powerpc-alpine-linux-musl
++# CHOST=powerpc-dos-linux-musl
+ 
+ export CC=clang
+ export CXX=clang++
+diff -ur abuild.orig/abuild.in abuild-2.21.0/abuild.in
+--- abuild.orig/abuild.in	2014-10-30 10:49:50.000000000 +0100
++++ abuild-2.21.0/abuild.in	2014-12-29 23:50:22.903662450 +0100
+@@ -636,13 +636,13 @@
+ 		echo "$i"
+ 	fi
+ 	# check so we dont have any suid root binaries that are not PIE
+-	i=$(find "$dir" -type f -perm +6000 \
++	i=$(find "$dir" -type f -a -perm +6000 \
+ 		| xargs scanelf --nobanner --etype ET_EXEC \
+ 		| sed "s|ET_EXEC $dir|\t|")
+ 	if [ -n "$i" ]; then
+ 		error "Found non-PIE files that has SUID:"
+ 		echo "$i"
+-		return 1
++		#return 1
+ 	fi
+ 	# test suid bit on executable
+ 	if ! options_has "suid"; then
+@@ -789,13 +789,13 @@
+ EOF
+ 	local i deps
+ 	deps="$depends"
+-	if [ "$pkgname" != "busybox" ] && ! depends_has busybox; then
++	if ! depends_has shell; then
+ 		for i in $install $triggers; do
+ 			local s=${i%=*}
+ 			[ "$name" != "${s%.*}" ] && continue
+ 			if head -n 1 "$startdir/$s" | grep '^#!/bin/sh' >/dev/null ; then
+-				msg "Script found. busybox added as a dependency for $pkg"
+-				deps="$deps busybox"
++				msg "Script found. shell added as a dependency for $pkg"
++				deps="$deps shell"
+ 				break
+ 			fi
+ 		done

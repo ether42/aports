@@ -8,7 +8,8 @@ arch="all"
 url="http://libcxxabi.llvm.org/"
 license="MIT"
 depends=
-makedepends="clang libcxx"
+makedepends="clang musl-dev libcxx-dev"
+subpackages="$pkgname-dev"
 source="http://llvm.org/releases/$pkgver/libcxxabi-$pkgver.src.tar.xz
 	libcxxabi.patch"
 
@@ -24,7 +25,7 @@ prepare() {
 build() {
 	cd "$srcdir"/$pkgname-$pkgver.src || return 1
 	cd lib
-	CC=clang CXX=clang++ TRIPLE=$CHOST ./buildit
+	TRIPLE=$CHOST ./buildit
 }
 
 package() {
@@ -32,6 +33,7 @@ package() {
 	mkdir -p ${pkgdir}/usr/include
 	mkdir -p ${pkgdir}/usr/lib
 	install lib/libc++abi.so.1.0 ${pkgdir}/usr/lib/libc++abi.so.1.0
+	install lib/libc++abi.a ${pkgdir}/usr/lib/libc++abi.a
 	ln -s libc++abi.so.1.0 ${pkgdir}/usr/lib/libc++abi.so.1
 	ln -s libc++abi.so.1.0 ${pkgdir}/usr/lib/libc++abi.so
 	install include/* ${pkgdir}/usr/include
@@ -39,8 +41,8 @@ package() {
 }
 
 md5sums="56a63586157ca8ffe5ea70b788bdbab1  libcxxabi-3.5.0.src.tar.xz
-29069f1b0ec1ade058a631451dba0ee6  libcxxabi.patch"
+915655fbaeec804178c694be6f9a85ca  libcxxabi.patch"
 sha256sums="53c6be6a2dd2371f6d92c968cb8a59fbe13c6153583025433df067f706bfacd9  libcxxabi-3.5.0.src.tar.xz
-5b0f3ea769f50af53e48ff89ad4da7a7d572c77607fa34157aa00bcd839e0e00  libcxxabi.patch"
+f8531a4c59ccce829d04e690ea89427225d708ee2ec194c5946046608bb47045  libcxxabi.patch"
 sha512sums="f6cc1f8a64d7bfc0c8c3e3445b9826b54320aef40190a9c2f057198326b129e94d5f2d1208ba98511878419504e96f34f3e63166193fc794de0263f581e3d751  libcxxabi-3.5.0.src.tar.xz
-27ec0206256c5160268e14eee5ff5537a115ce78b7dd32324b06c90ac5eec9a29c2f433f5f5d59d40eea992393158835df42189599de4f6d1a53ce107385a783  libcxxabi.patch"
+60a5e80513e2063efab57267e7ddaf41359a38a75088fc6a294cafb802a2431065dc8f4e43d6ab5dfe73d99a136d5bc4056cbceabada1dfd2d81cb8b7ca4a58c  libcxxabi.patch"

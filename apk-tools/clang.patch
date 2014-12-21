@@ -1,0 +1,21 @@
+diff -ur apk-tools.orig/Make.rules apk-tools-2.4.4/Make.rules
+--- apk-tools.orig/Make.rules	2014-12-28 22:17:02.000000000 +0100
++++ apk-tools-2.4.4/Make.rules	2014-12-28 22:22:49.203493712 +0100
+@@ -64,7 +64,7 @@
+ # Utilities and default flags for them.
+ 
+ CROSS_COMPILE	?=
+-CC		:= $(CROSS_COMPILE)gcc
++CC		:= $(CROSS_COMPILE)clang
+ LD		:= $(CROSS_COMPILE)ld
+ INSTALL		:= install
+ INSTALLDIR	:= $(INSTALL) -d
+@@ -174,7 +174,7 @@
+ #####
+ # Handle options to gcc.
+ 
+-c_flags		= -Wp,-MD,$(depfile),-MT,$@ $(CPPFLAGS) \
++c_flags		= -MD -MF $(depfile) -MT $@ $(CPPFLAGS) \
+ 		  $(CFLAGS_ALL) $(CFLAGS_EXTRA) $(CFLAGS_$(notdir $@))
+ ld_flags	= $(LDFLAGS_ALL) $(LDFLAGS_EXTRA) $(LDFLAGS_$(notdir $@))
+ 

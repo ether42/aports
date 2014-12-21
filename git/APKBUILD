@@ -50,12 +50,13 @@ prepare() {
 
 build() {
 	cd "$srcdir"/$pkgname-$pkgver
-	make prefix=/usr DESTDIR="$pkgdir" $_makeopts || return 1
+	make prefix=/usr CC=$CC DESTDIR="$pkgdir" $_makeopts || return 1
 }
 
 package() {
 	cd "$srcdir"/$pkgname-$pkgver
 	make prefix=/usr \
+		CC=$CC \
 		DESTDIR="$pkgdir" \
 		INSTALLDIRS=vendor \
 		$_makeopts install || return 1

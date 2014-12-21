@@ -7,10 +7,23 @@ index b18491d..36cbe3e 100755
      LDSHARED_FLAGS="-o libc++abi.so.1.0 \
          -shared -nodefaultlibs -Wl,-soname,libc++abi.so.1 \
 -        -lpthread -lrt -lc -lstdc++"
-+        -lpthread -lrt -lc -lc++"
++        -Wl,--as-needed -lpthread -lrt -lc -lc++"
      ;;
  esac
 
+@@ -84,6 +84,12 @@
+ for FILE in ../src/*.cpp; do
+ 	$CXX -c -g -O3 $RC_CFLAGS $EXTRA_FLAGS -I../include $OPTIONS $FILE
+ done
++for FILE in libunwind.cpp Unwind-EHABI.cpp; do
++  $CXX -c -g -O3 $RC_CFLAGS $EXTRA_FLAGS -I../include $OPTIONS ../src/Unwind/$FILE
++done
++for FILE in UnwindLevel1.c UnwindLevel1-gcc-ext.c Unwind-sjlj.c UnwindRegistersRestore.S UnwindRegistersSave.S; do
++  $CC -c -g -O3 $RC_CFLAGS -I../include $OPTIONS ../src/Unwind/$FILE
++done
+ case $TRIPLE in
+   *-*-mingw*)
+   for FILE in ../src/support/win32/*.cpp; do
 @@ -92,6 +92,8 @@ case $TRIPLE in
    ;;
  esac
@@ -20,3 +33,14 @@ index b18491d..36cbe3e 100755
 
  if [ -z $RC_XBS ]
  then
+--- a/src/Unwind/config.h	2014-12-30 11:54:43.973675523 +0100
++++ b/src/Unwind/config.h	2014-12-30 11:52:47.000000000 +0100
+@@ -75,7 +75,7 @@
+   #define _LIBUNWIND_LOG(msg, ...) fprintf(stderr, "libuwind: " msg, __VA_ARGS__)
+   #define _LIBUNWIND_ABORT(msg) assert_rtn(__func__, __FILE__, __LINE__, msg)
+ 
+-  #define _LIBUNWIND_SUPPORT_COMPACT_UNWIND 0
++  #define _LIBUNWIND_SUPPORT_COMPACT_UNWIND 1
+   #define _LIBUNWIND_SUPPORT_DWARF_UNWIND   0
+   #define _LIBUNWIND_SUPPORT_DWARF_INDEX    0
+ #endif

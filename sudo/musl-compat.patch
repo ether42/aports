@@ -1,0 +1,22 @@
+--- a/include/sudo_compat.h	2014-09-23 18:40:15.000000000 +0200
++++ b/include/sudo_compat.h	2015-01-04 15:04:56.843941347 +0100
+@@ -429,7 +429,7 @@
+ # define memrchr(_a, _b, _c) sudo_memrchr((_a), (_b), (_c))
+ #endif /* HAVE_MEMRCHR */
+ #ifndef HAVE_MEMSET_S
+-__dso_public errno_t sudo_memset_s(void *v, rsize_t smax, int c, rsize_t n);
++__dso_public errno_t sudo_memset_s(void *v, size_t smax, int c, size_t n);
+ # undef memset_s
+ # define memset_s(_a, _b, _c, _d) sudo_memset_s((_a), (_b), (_c), (_d))
+ #endif /* HAVE_MEMSET_S */
+--- a/lib/util/memset_s.c	2015-01-04 15:07:33.233945911 +0100
++++ b/lib/util/memset_s.c	2015-01-04 15:07:50.810613090 +0100
+@@ -48,7 +48,7 @@
+  * that it be non-zero.  We use EINVAL for all errors.
+  */
+ errno_t
+-sudo_memset_s(void *v, rsize_t smax, int c, rsize_t n)
++sudo_memset_s(void *v, size_t smax, int c, size_t n)
+ {
+     errno_t ret = 0;
+     volatile unsigned char *s = v;

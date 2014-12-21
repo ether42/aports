@@ -16,6 +16,7 @@ depends=
 subpackages="$pkgname-doc $pkgname-dev"
 source="ftp://ftp.sudo.ws/pub/sudo/$pkgname-$_realver.tar.gz
 	fix-cross-compile.patch
+	musl-compat.patch
 	libcrypt.patch
 	domain.patch"
 options="suid"
@@ -55,14 +56,17 @@ package() {
 }
 
 md5sums="84012b4871b6c775c957cd310d5bad87  sudo-1.8.11p2.tar.gz
-91e1a494af992cc9e598f8bb715a13c9  fix-cross-compile.patch
+52ad8bfac2787618e58ad72f2972d139  fix-cross-compile.patch
+a6e9527bec51f925216f5a47e76d5c85  musl-compat.patch
 048e1cc360537bcea5b74a874fd41674  libcrypt.patch
 2cfe0d309d42e7278bea325059b48eb5  domain.patch"
 sha256sums="8133849418fa18cf6b6bb6893d1855ff7afe21db8923234a00bf045c90fba1ad  sudo-1.8.11p2.tar.gz
-7683c69c977b276882922b826b9166bc0ec8c82e1ca8c97d6d93f4738c0c6a5e  fix-cross-compile.patch
+a8d8760a7b69e8699cb2a913a0d60e0132b7548bb76c1cbd0242b4fe6e61831c  fix-cross-compile.patch
+d58a7026b879d2b38508075830ac9679efc459ef73c1654f16964c640d17f78e  musl-compat.patch
 d26dc7aaa958d988bbb7efaa0118d23e06375cc90868d14d4b2620f55589cb41  libcrypt.patch
 1f455dc37a88089017d580a66e805c3e2ad144f16a304ee457b6cfa8668d18dd  domain.patch"
 sha512sums="fdd6c14c3738cb7bafec9873c49f96270fdd36c72d14d3fc7e1ef3651275961bf17550ac1f56ed445b394985cbbf602b88f52cda1226e9007bed14a4d4fadbaa  sudo-1.8.11p2.tar.gz
-4da8baf526dc7b7dac5cc067e52d5ae464b82337ac5d520641b3d93af2cfa4f2d3897f4e6602f988a194b7260e3edea9c57ccfc07a3eed7e9967956851997950  fix-cross-compile.patch
+43c5c9f13590fb297a665203cf168e69ec6d8c9bdad0e69d0ed6dbd27e53f6e6adeab653cf2b01be94d5c55baa2fb11faecc662402a62340fa8f248a9b183db0  fix-cross-compile.patch
+59acdc9e1e77cd5458c6727c5f63aa4cd91bbd54ab3f3f70af26708155c2d6c9f569a7378741d9ef47e6f71c8b89ea23365dc96770d47936c809dde7f364d0c9  musl-compat.patch
 5ad20254aa587ef615f794081ecd55344eada5cf8c1a1d7956cc3f73375554716c483eeb74081da9a8501afce92cfbaf2abe59d1067aac67ce6e4874eb5a23e1  libcrypt.patch
 66c724d8e062745be669625dfdf08ee78e04b8b1f28ae61f49d38a952e52045229bbe3d9e0ecfe8e00d1a53db082488198054d23377bf11706bfbefd59068d3d  domain.patch"

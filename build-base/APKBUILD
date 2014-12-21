@@ -1,9 +1,9 @@
 pkgname=build-base
 pkgver=0.3
 pkgrel=0
-url=http://dev.doslinux.org/cgit
+url=http://dev.dos.org/
 pkgdesc="Meta package for build base"
-depends="binutils clang make patch musl-dev " #linux-headers"
+depends="binutils clang make patch musl-dev linux-headers"
 arch="noarch"
 license=none
 

@@ -5,11 +5,11 @@
  
  mksiglist: $(srcdir)/mksiglist.c $(srcdir)/mksiglist.h $(incdir)/sudo_compat.h $(top_builddir)/config.h
 -	$(CC) $(CPPFLAGS) $(CFLAGS) $(DEFS) $(srcdir)/mksiglist.c -o $@
-+	$${HOSTCC:-gcc} -I$(incdir) -I$(top_builddir) -I$(top_srcdir) $(DEFS) $(srcdir)/mksiglist.c -o $@
++	$${HOSTCC:-clang} -I$(incdir) -I$(top_builddir) -I$(top_srcdir) $(DEFS) $(srcdir)/mksiglist.c -o $@
  
  mksigname: $(srcdir)/mksigname.c $(srcdir)/mksigname.h $(incdir)/sudo_compat.h $(top_builddir)/config.h
 -	$(CC) $(CPPFLAGS) $(CFLAGS) $(DEFS) $(srcdir)/mksigname.c -o $@
-+	$${HOSTCC:-gcc} -I$(incdir) -I$(top_builddir) -I$(top_srcdir) $(DEFS) $(srcdir)/mksigname.c -o $@
++	$${HOSTCC:-clang} -I$(incdir) -I$(top_builddir) -I$(top_srcdir) $(DEFS) $(srcdir)/mksigname.c -o $@
  
  $(srcdir)/mksiglist.h: $(srcdir)/siglist.in
  	@if [ -n "$(DEVEL)" ]; then \

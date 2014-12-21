@@ -1,0 +1,2 @@
+#!/bin/sh
+for i in $(/bin/toybox --long); do /bin/toybox ln -sf /bin/toybox $i; done

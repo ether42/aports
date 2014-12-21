@@ -1,0 +1,53 @@
+# Maintainer: Tomasz Sterna <tomek@xiaoka.com>
+# Contributor: Pablo Lezaeta <prflr88@gmail.com>
+
+pkgname=toybox
+pkgver=0.5.1
+pkgrel=0
+pkgdesc="Fresh implementation of linux/android command line, BSD licensed."
+arch="all"
+license="BSD"
+url="http://landley.net/toybox/"
+replaces="busybox"
+makedepends="linux-headers"
+source="http://landley.net/toybox/downloads/${pkgname}-$pkgver.tar.bz2
+        config
+        clang-musl.patch
+        no_bash.patch"
+install=toybox.post-install
+
+prepare() {
+  cd $srcdir/$pkgname-$pkgver
+  for i in $source; do
+    case $i in
+    *.patch) msg $i; patch -p1 -i "$srcdir"/$i || return 1;;
+    esac
+  done
+  cp "$srcdir/config" .config
+  #echo '#define IUTF8   0040000' >> "$srcdir/$pkgname-$pkgver/toys.h"
+}
+
+build() {
+  cd $srcdir/$pkgname-$pkgver
+  pwd
+  make CC=clang HOSTCC=clang oldconfig toybox
+}
+
+package() {
+  #mkdir -p $pkgdir/System/Documentation/licenses/$pkgname
+  mkdir -p $pkgdir/bin $pkgdir/sbin $pkgdir/usr/bin $pkgdir/usr/sbin
+  cp $srcdir/$pkgname-$pkgver/toybox $pkgdir/bin/
+}
+
+md5sums="1925d2222bd4f877d25e3ddaf4ee4f30  toybox-0.5.1.tar.bz2
+8028dfea8e964058f684864ab7dea6de  config
+ff256565c9149d579f05da4d294131fe  clang-musl.patch
+617f140e9452e6d396cab55cf910f371  no_bash.patch"
+sha256sums="83baa69a26e03a920ea7e91fbeb9016178990450d4144d1a244275b44346a12c  toybox-0.5.1.tar.bz2
+3be0cf4ef219ada601e7c56fff7eafcff00735932139564c75e8ff35008a5b63  config
+dd8bad76002db47623916eba0474bc0b15fa6528a631bd05fa227c75c83c15a8  clang-musl.patch
+ab39bfbb51fb2a2cbcbb661edeb7393aa5a0d58a0da72940f880aec2e8fa21f5  no_bash.patch"
+sha512sums="4abab27ef1d3ecedc1b419ea7421c032bdb9bd375a808e8400eda6c409665b41f35bef959087b863bb661d54962fb8ce78ed1d74285040837611dfdb7c715d03  toybox-0.5.1.tar.bz2
+1615fdb5b7a56804503853cbda9925cfc2cfe34db4e7e83c7846dc923b486a5407b64f0cbe2472f39a0b7c14752d8cc1c220921b82cd1bcdbf39d0d705f4fd14  config
+1eea8dc58e3e59f8446bb263f538e78d4e26aa04d2a31f63faeede4593ce3a37f3d494cfae4d54ff83c310689784b2d761bacf730570c22652c59a47b280ec8c  clang-musl.patch
+e1ec750d78107f6ebabeba5339c77a588e361b6cae1c7a8e6ddb939e7ad3cebab5269fb2ab15bd98114b8f99151c895f3e8d6ec2afb1b27463d4a61fff56d31d  no_bash.patch"

@@ -76,13 +76,13 @@ build() {
 	cd "$_builddir"
 
 	# provide minimal libssp_nonshared.a so we don't need libssp from gcc
-	${CROSS_COMPILE}gcc $CPPFLAGS $CFLAGS -c "$srcdir"/__stack_chk_fail_local.c -o __stack_chk_fail_local.o || return 1
+	${CROSS_COMPILE}${CC} $CPPFLAGS $CFLAGS -c "$srcdir"/__stack_chk_fail_local.c -o __stack_chk_fail_local.o || return 1
 	${CROSS_COMPILE}ar r libssp_nonshared.a __stack_chk_fail_local.o || return 1
 
 	# getconf/getent/iconv
 	local i
 	for i in getconf getent iconv ; do
-		${CROSS_COMPILE}gcc $CPPFLAGS $CFLAGS "$srcdir"/$i.c -o $i || return 1
+		${CROSS_COMPILE}${CC} $CPPFLAGS $CFLAGS "$srcdir"/$i.c -o $i || return 1
 	done
 
 	# note: not autotools

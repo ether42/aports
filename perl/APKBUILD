@@ -35,6 +35,7 @@ _vendorarch=/usr/lib/perl5/vendor_perl
 build() {
 	cd $_builddir
 	./Configure -des \
+		-Dcc="${CC}" \
 		-Dcccdlflags='-fPIC' \
 		-Dcccdlflags='-fPIC' \
 		-Dccdlflags='-rdynamic' \
@@ -60,7 +61,7 @@ build() {
 		-Dman1ext='1' \
 		-Dman3ext='3pm' \
 		-Dinc_version_list="$inclist" \
-		-Dcf_by='Alpine' \
+		-Dcf_by='D/os' \
 		-Ud_csh \
 		-Dusenm \
 		|| return 1
