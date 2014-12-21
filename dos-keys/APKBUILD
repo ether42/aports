@@ -11,7 +11,7 @@ makedepends=""
 install=""
 subpackages=""
 replaces="dos-base"
-source="smoku-5425c590.rsa.pub"
+source="smoku-5496f5e0.rsa.pub"
 
 build() {
 	return 0
@@ -24,6 +24,6 @@ package() {
 		"$pkgdir"/etc/apk/keys/ || return 1
 }
 
-md5sums="d07824de176e2cc24b9e60aa8a23ae3e  smoku-5425c590.rsa.pub"
-sha256sums="3ea3e9a704687723e32a24789c2975cefc56c7157f62cbbc095eb691c34d3a02  smoku-5425c590.rsa.pub"
-sha512sums="3a857f9a1294458e4e3f1ec362dab25fa4dbfca03fcc8c969a2a31e960ba6bfcfc02e46d286600a7b3a01e14bc4956e0b432ecf4404217548952792f43feeeb7  smoku-5425c590.rsa.pub"
+md5sums="91202b134b7ec0c72266ddf05243e895  smoku-5496f5e0.rsa.pub"
+sha256sums="78d870da5b4dcf7d078fe046b70dbe4247b1927ea788f1ff7a290dd12e6cc6d6  smoku-5496f5e0.rsa.pub"
+sha512sums="2522b2ba9e4d0498f27cfec300dd1d94288d49b8c8c75c57152eb737560321693d8ba11452b1f045322481f7dfe150f4c30a1d18079853b15c9001cf2d4dc3ab  smoku-5496f5e0.rsa.pub"

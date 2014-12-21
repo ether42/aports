@@ -1,0 +1,21 @@
+# Maintainer: Tomasz Sterna <tomek@xiaoka.com>
+pkgname=shell
+pkgver=0.1
+pkgrel=1
+pkgdesc="Dummy meta package to pull in /bin/sh implementation"
+url="http://dos.org"
+arch="noarch"
+license="BSD"
+depends="mksh"
+source=""
+subpackages=""
+
+build() {
+	return 0
+}
+
+package() {
+	mkdir -p "$pkgdir"/bin
+	ln -s /usr/bin/mksh "$pkgdir"/bin/sh
+}
+md5sums=""

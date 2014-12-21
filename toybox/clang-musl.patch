@@ -1,0 +1,28 @@
+diff -ur toybox.orig/kconfig/zconf.hash.c_shipped toybox-0.5.1/kconfig/zconf.hash.c_shipped
+--- toybox.orig/kconfig/zconf.hash.c_shipped	2014-11-20 04:38:00.000000000 +0100
++++ toybox-0.5.1/kconfig/zconf.hash.c_shipped	2014-12-26 22:54:58.173655688 +0100
+@@ -159,9 +159,6 @@
+     "enable"
+   };
+ #define kconf_id_strings ((const char *) &kconf_id_strings_contents)
+-#ifdef __GNUC__
+-__inline
+-#endif
+ struct kconf_id *
+ kconf_id_lookup (register const char *str, register unsigned int len)
+ {
+diff -ur toybox.orig/scripts/mkflags.c toybox-0.5.1/scripts/mkflags.c
+--- toybox.orig/scripts/mkflags.c	2014-11-20 04:38:00.000000000 +0100
++++ toybox-0.5.1/scripts/mkflags.c	2014-12-26 22:53:18.076986100 +0100
+@@ -6,9 +6,11 @@
+ // This is intentionally crappy code because we control the inputs. It leaks
+ // memory like a sieve and segfaults if malloc returns null, but does the job.
+ 
++#include <ctype.h>
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
++#include <unistd.h>
+ #include <errno.h>
+ 
+ struct flag {

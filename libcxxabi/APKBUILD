@@ -8,6 +8,7 @@ arch="all"
 url="http://libcxxabi.llvm.org/"
 license="MIT"
 depends=
+#makedepends="clang libcxxrt" # needs libcxxrt first time around to break cyclic dependency
 makedepends="clang libcxx"
 source="http://llvm.org/releases/$pkgver/libcxxabi-$pkgver.src.tar.xz
 	libcxxabi.patch"
@@ -24,7 +25,7 @@ prepare() {
 build() {
 	cd "$srcdir"/$pkgname-$pkgver.src || return 1
 	cd lib
-	CC=clang CXX=clang++ TRIPLE=$CHOST ./buildit
+	TRIPLE=$CHOST ./buildit
 }
 
 package() {

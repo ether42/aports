@@ -1,0 +1,26 @@
+--- a/Makefile	2014-10-30 10:49:50.000000000 +0100
++++ b/Makefile	2014-12-21 18:43:43.000000000 +0100
+@@ -42,10 +42,11 @@
+ LDFLAGS ?=
+ 
+ OBJS-abuild-tar  = abuild-tar.o
+-LIBS-abuild-tar = $(SSL_LIBS)
++LIBS-abuild-tar = $(SSL_LIBS)
+ CFLAGS-abuild-tar = $(SSL_CFLAGS)
+ 
+ OBJS-abuild-sudo = abuild-sudo.o
++CFLAGS-abuild-sudo.o = -fPIC
+ 
+ .SUFFIXES:	.sh.in .in
+ %.sh: %.sh.in
+--- a/abuild.conf	2014-12-21 20:03:54.383093201 +0100
++++ b/abuild.conf	2014-12-21 20:03:44.376426765 +0100
+@@ -6,6 +6,8 @@
+ # for powerpc we want:
+ # CHOST=powerpc-alpine-linux-musl
+ 
++export CC=clang
++export CXX=clang++
+ export CFLAGS="-Os -fomit-frame-pointer"
+ export CXXFLAGS="$CFLAGS"
+ export CPPFLAGS="$CFLAGS"

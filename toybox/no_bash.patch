@@ -1,0 +1,91 @@
+diff -ur toybox.orig/scripts/findglobals.sh toybox-0.5.1/scripts/findglobals.sh
+--- toybox.orig/scripts/findglobals.sh	2014-11-20 04:38:00.000000000 +0100
++++ toybox-0.5.1/scripts/findglobals.sh	2014-12-26 22:48:35.586977857 +0100
+@@ -1,4 +1,4 @@
+-#!/bin/bash
++#!/bin/sh
+ 
+ # Quick and dirty check to see if anybody's leaked global variables.
+ # We should have this, toy_list, toybuf, and toys.
+diff -ur toybox.orig/scripts/genconfig.sh toybox-0.5.1/scripts/genconfig.sh
+--- toybox.orig/scripts/genconfig.sh	2014-11-20 04:38:00.000000000 +0100
++++ toybox-0.5.1/scripts/genconfig.sh	2014-12-26 22:48:35.586977857 +0100
+@@ -1,4 +1,4 @@
+-#!/bin/bash
++#!/bin/sh
+ 
+ # This has to be a separate file from scripts/make.sh so it can be called
+ # before menuconfig.  (It's called again from scripts/make.sh just to be sure.)
+diff -ur toybox.orig/scripts/install.sh toybox-0.5.1/scripts/install.sh
+--- toybox.orig/scripts/install.sh	2014-11-20 04:38:00.000000000 +0100
++++ toybox-0.5.1/scripts/install.sh	2014-12-26 22:48:35.590311191 +0100
+@@ -1,4 +1,4 @@
+-#!/bin/bash
++#!/bin/sh
+ 
+ # Grab default values for $CFLAGS and such.
+ 
+diff -ur toybox.orig/scripts/make.sh toybox-0.5.1/scripts/make.sh
+--- toybox.orig/scripts/make.sh	2014-11-20 04:38:00.000000000 +0100
++++ toybox-0.5.1/scripts/make.sh	2014-12-26 22:48:35.590311191 +0100
+@@ -1,4 +1,4 @@
+-#!/bin/bash
++#!/bin/sh
+ 
+ # Grab default values for $CFLAGS and such.
+ 
+@@ -113,7 +113,7 @@
+ 
+ # Extract global structure definitions and flag definitions from toys/*/*.c
+ 
+-function getglobals()
++getglobals()
+ {
+   for i in toys/*/*.c
+   do
+@@ -197,7 +197,7 @@
+ do
+   # build each generated/obj/*.o file in parallel
+ 
+-  X=${i/lib\//lib_}
++  X=$(echo $i | sed 's!lib/!lib_!')
+   X=${X##*/}
+   do_loudly $BUILD -c $i -o generated/obj/${X%%.c}.o &
+ 
+@@ -205,7 +205,8 @@
+ 
+   while true
+   do
+-    PENDING="$(echo $PENDING $(jobs -rp) | tr ' ' '\n' | sort -u)"
++    PENDING="$PENDING $(jobs -p)"
++    PENDING="$(echo $PENDING | tr ' ' '\n' | sort -u)"
+     [ $(echo -n "$PENDING" | wc -l) -lt "$CPUS" ] && break;
+ 
+     wait $(echo "$PENDING" | head -n 1) || exit 1
+diff -ur toybox.orig/scripts/minicom.sh toybox-0.5.1/scripts/minicom.sh
+--- toybox.orig/scripts/minicom.sh	2014-11-20 04:38:00.000000000 +0100
++++ toybox-0.5.1/scripts/minicom.sh	2014-12-26 22:48:35.590311191 +0100
+@@ -1,4 +1,4 @@
+-#!/bin/bash
++#!/bin/sh
+ 
+ # If you want to use toybox netcat to talk to a serial port, use this.
+ 
+diff -ur toybox.orig/scripts/single.sh toybox-0.5.1/scripts/single.sh
+--- toybox.orig/scripts/single.sh	2014-11-20 04:38:00.000000000 +0100
++++ toybox-0.5.1/scripts/single.sh	2014-12-26 22:48:35.593644524 +0100
+@@ -1,4 +1,4 @@
+-#!/bin/bash
++#!/bin/sh
+ 
+ # Build a standalone toybox command
+ 
+diff -ur toybox.orig/scripts/test.sh toybox-0.5.1/scripts/test.sh
+--- toybox.orig/scripts/test.sh	2014-11-20 04:38:00.000000000 +0100
++++ toybox-0.5.1/scripts/test.sh	2014-12-26 22:48:35.593644524 +0100
+@@ -1,4 +1,4 @@
+-#!/bin/bash
++#!/bin/sh
+ 
+ [ -z "$TOPDIR" ] && TOPDIR="$(pwd)"
+ 

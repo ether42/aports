@@ -11,6 +11,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
+#include <err.h>
 #include <libgen.h>
 #include <stdio.h>
 #include <stdlib.h>

@@ -57,8 +57,6 @@ build() {
 		../$pkgname-$pkgver.src/autoconf/config.guess \
 		|| return 1
 
-	export CHOST=x86_64-dos-linux-musl
-
 	$_srcdir/configure \
 		--build=$CBUILD \
 		--host=$CHOST \
