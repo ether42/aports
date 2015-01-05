@@ -10,8 +10,7 @@ depends=""
 pkggroups="shadow"
 options="!fhs"
 install=""
-source="color_prompt
-
+source="
 	group
 	passwd
 	profile
@@ -85,9 +84,6 @@ package() {
 	install -d -m 0700 "$pkgdir"/root || return 1
 	install -d -m 1777 "$pkgdir"/tmp "$pkgdir"/var/tmp || return 1
 
-	install -m644 "$srcdir"/color_prompt "$pkgdir"/etc/profile.d/ \
-		|| return 1
-
 	echo "UTC" > "$pkgdir"/etc/TZ
 	echo "localhost" > "$pkgdir"/etc/hostname
 	echo "127.0.0.1	localhost localhost.localdomain" > "$pkgdir"/etc/hosts
@@ -127,20 +123,17 @@ EOF
 	ln -s /proc/mounts "$pkgdir"/etc/mtab
 
 }
-md5sums="d7da26e76752b2e31c66b63f40a73397  color_prompt
-67ee12ef936978ec0e7d295eaba1e420  group
+md5sums="67ee12ef936978ec0e7d295eaba1e420  group
 d05579984e737021401d8c40153c5b5d  passwd
 dcb55fbc491316cdb3874f3ddae8f566  profile
 394f8cd9fbf549f1d1b9a5bba680fc92  protocols
 5278bea4f45f4e289f72897b84dcb909  services"
-sha256sums="a00b56dbd437d3f2c32ced50974daa3cfc84a8dd1cbaf75cf307be20b398fc75  color_prompt
-591fce261465cd838bcfddc9a4e560cc4f0c1d603921c200c350b935213b9ca1  group
+sha256sums="591fce261465cd838bcfddc9a4e560cc4f0c1d603921c200c350b935213b9ca1  group
 348e451c8d4d2d9807d78114d100942f1c5481fd52550c821922b84a16f02d42  passwd
 8165abfa26a1754c317228e78142f4a89dd72a669951d269f0b68d7a92faf1e8  profile
 a6695dbd53b87c7b41dfdafd40b1c8ba34fed2f0fa8eaaa296ad17c0b154603e  protocols
 e96af627f7774e8c87b0de843556a355fea6150c4d64fa4e2ff2c5fd610e7a79  services"
-sha512sums="7fcb5df98b0f19e609cb9444b2e6ca5ee97f5f308eb407436acdd0115781623fd89768a9285e9816e36778e565b6f27055f2a586a58f19d6d880de5446d263c4  color_prompt
-214d7b26bfdefbe08d150974d1e1635ee4b8ca68a04a22eacf2e465f3a191421fb453ad93f14a1c70f98b628a509d623e005f912270e7552513daa1e50bb1859  group
+sha512sums="214d7b26bfdefbe08d150974d1e1635ee4b8ca68a04a22eacf2e465f3a191421fb453ad93f14a1c70f98b628a509d623e005f912270e7552513daa1e50bb1859  group
 3b9be283e171516dd45ee29775a1149ba20d5672bef422a698ed944ce66697e5a80dec21a9a20c079cca895890dbfa73ccbb8000a55504d95ced4e7436d8e16b  passwd
 9e197ec99c97ec2b03b97546d632a865d6e7abe5742ac48bcb458a505ce38abd1010ef93ea8a752251578ea993708324e1d36ccf77ee3e7cde7e8db98cc42d67  profile
 f1548a2b5a107479446f15905f0f2fbf8762815b2215188d49d905c803786d35de6d98005dc0828fb2486b04aaa356f1216a964befddf1e72cb169656e23b6ac  protocols
