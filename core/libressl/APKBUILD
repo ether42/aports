@@ -23,6 +23,8 @@ build() {
 package() {
 	cd "$_builddir"
 	make DESTDIR="$pkgdir" install
+	install -d -m 0755 "$pkgdir"/etc/ssl || return 1
+	install -m644 "$_builddir"/apps/openssl.cnf "$pkgdir"/etc/ssl/ || return 1
 }
 
 libcrypto() {
