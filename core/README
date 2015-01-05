@@ -1,0 +1,26 @@
+Rebuilding from scratch is a bit tricky, as there is a circular dependency between libcxxabi -> libcxx -> libcxxabi -> ...
+
+You have two options:
+- if you have libcxx apks already, you may use it to build libcxxabi
+- if you do not have libcxx already (building for new arch) edit libcxx APKBUILD and temporarly switch to libcxxrt
+  (but remember to rebuild libcxx with libcxxabi after)
+
+This "recipe" explores first option:
+
+    $ mkdir build	# This is "build" user's home
+    $ git clone ...../D-os/aports.git build/aports
+    # mkdir /mnt/dos	# I usually mount btrfs subvolume here
+    # apk.static --repository build/packages/core --update-cache --allow-untrusted --root /mnt/dos --initdb add dos-base
+    # apk.static --repository build/packages/core --root /mnt/test2 add dos-sdk libcxx-dev
+    # mount -o bind /dev /mnt/dos/dev	# required for shell tty handling
+    # mount -t proc proc /mnt/dos/proc	# required by clang to find self name
+    # chroot /mnt/dos /bin/sh
+     # . /etc/profile
+     # adduser build -G abuild -D
+     # exit
+    # mount -o bind build/ /mnt/dos/home/build
+    # chroot /mnt/dos /bin/sh
+     # su - build
+     $ cd aports/core/libcxx/
+     $ abuild -R -f
+     $ cd ../more-stuff/	# rinse-repeat until you have dos-base and dos-sdk with dependencies
