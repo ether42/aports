@@ -120,6 +120,15 @@ diff -ru llvm-3.5.0.src.orig/tools/clang/lib/Driver/ToolChains.cpp llvm-3.5.0.sr
    };
  
    static const char *const MIPSLibDirs[] = { "/lib" };
+@@ -2179,7 +2179,7 @@
+       getTriple().getArch() == llvm::Triple::arm64 ||
+       getTriple().getArch() == llvm::Triple::arm64_be ||
+       (getTriple().getOS() == llvm::Triple::Linux &&
+-       (!V.isOlderThan(4, 7, 0) ||
++       (!V.isOlderThan(4, 7, 0) || getTriple().getVendor() == llvm::Triple::Dos ||
+         getTriple().getEnvironment() == llvm::Triple::Android));
+ 
+   if (DriverArgs.hasFlag(options::OPT_fuse_init_array,
 @@ -2777,6 +2780,7 @@
  /// Distribution (very bare-bones at the moment).
  
@@ -207,6 +216,16 @@ diff -ru llvm-3.5.0.src.orig/tools/clang/lib/Driver/Tools.cpp llvm-3.5.0.src/too
  }
  
  static void addProfileRT(
+@@ -3886,7 +3886,8 @@
+                     options::OPT_fno_use_cxa_atexit,
+                     !IsWindowsCygnus && !IsWindowsGNU &&
+                     getToolChain().getArch() != llvm::Triple::hexagon &&
+-                    getToolChain().getArch() != llvm::Triple::xcore) ||
++                    getToolChain().getArch() != llvm::Triple::xcore &&
++                    getToolChain().getTriple().getVendor() != llvm::Triple::Dos) ||
+       KernelOrKext)
+     CmdArgs.push_back("-fno-use-cxa-atexit");
+ 
 @@ -7182,8 +7182,14 @@
        return "/system/bin/linker64";
      else
@@ -294,3 +313,19 @@ diff -ur llvm-3.5.0.src.orig/tools/clang/lib/Driver/ToolChains.h llvm-3.5.0.src/
    bool isPIEDefault() const override;
  
    std::string Linker;
+diff -ur llvm-3.5.0.src.orig/lib/ExecutionEngine/RTDyldMemoryManager.cpp llvm-3.5.0.src/lib/ExecutionEngine/RTDyldMemoryManager.cpp
+--- llvm-3.5.0.src.orig/lib/ExecutionEngine/RTDyldMemoryManager.cpp	2015-01-06 02:28:27.416464226 +0100
++++ llvm-3.5.0.src/lib/ExecutionEngine/RTDyldMemoryManager.cpp	2015-01-06 02:31:27.229793390 +0100
+@@ -32,12 +32,7 @@
+ RTDyldMemoryManager::~RTDyldMemoryManager() {}
+ 
+ // Determine whether we can register EH tables.
+-#if (defined(__GNUC__) && !defined(__ARM_EABI__) && !defined(__ia64__) && \
+-     !defined(__SEH__) && !defined(__USING_SJLJ_EXCEPTIONS__))
+-#define HAVE_EHTABLE_SUPPORT 1
+-#else
+ #define HAVE_EHTABLE_SUPPORT 0
+-#endif
+ 
+ #if HAVE_EHTABLE_SUPPORT
+ extern "C" void __register_frame(void*);
