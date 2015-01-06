@@ -79,6 +79,7 @@ dev() {
 }
 
 tests() {
+	arch="noarch"
 	pkgdesc="The test modules from the main python package"
 	cd "$pkgdir"
 	_mv_files usr/lib/python*/*/test \
