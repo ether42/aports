@@ -51,3 +51,26 @@ diff -ur abuild.orig/abuild.in abuild-2.21.0/abuild.in
  				break
  			fi
  		done
+@@ -1305,8 +1305,11 @@
+ 			usr/lib/qt*/mkspecs			\
+ 			usr/lib/cmake				\
+ 			$(find . -name include -type d) 	\
+-			$(find lib/ usr/ -name '*.[acho]' \
+-				-o -name '*.prl' 2>/dev/null); do
++			$(for d in lib/ usr/; do find $d        \
++				-name '*.[acho]' -o		\
++				-name '*.la' -o			\
++				-name '*.prl'			\
++				; done 2>/dev/null); do
+ 		if [ -e "$pkgdir/$i" ] || [ -L "$pkgdir/$i" ]; then
+ 			d="$subpkgdir/${i%/*}"	# dirname $i
+ 			mkdir -p "$d"
+@@ -1483,7 +1486,7 @@
+ 			echo "o ${j%%:*} $dir"
+ 			set -- $deps
+ 			echo -n "d ${j%%:*} $1"
+-			shift
++			[ -n "$1" ] && shift
+ 			while [ $# -gt 0 ]; do
+ 				echo -n ",$1"
+ 				shift
