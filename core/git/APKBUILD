@@ -74,6 +74,8 @@ _perl_git_svn() {
 	eval local `perl -V:vendorlib`
 	mkdir -p "$subpkgdir"/$vendorlib/Git
 	mv "$pkgdir"/$vendorlib/Git/SVN* "$subpkgdir"/$vendorlib/Git/
+	mkdir -p "$subpkgdir"/usr/share/man/man3
+	mv "$pkgdir"/usr/share/man/man3/*SVN*3pm "$subpkgdir"/usr/share/man/man3/
 }
 
 _perl_git() {
@@ -86,6 +88,10 @@ _perl_git() {
 		mkdir -p "$subpkgdir"/${i%/*} || return 1
 		mv "$pkgdir"/$i "$subpkgdir"/$i || return 1
 	done
+	mkdir -p "$subpkgdir"/usr/share/man/man3
+	mv "$pkgdir"/usr/share/man/man3/*.3pm "$subpkgdir"/usr/share/man/man3/
+	cd "$pkgdir"/usr/share
+	rmdir -p man/man3
 }
 
 email() {
