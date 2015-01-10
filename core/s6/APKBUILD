@@ -1,0 +1,31 @@
+# Maintainer: Lukas Braun <koomi+aur at hackerspace-bamberg dot de>
+# Contributor: David Arroyo <droyo@aqwari.us>
+pkgname=s6
+pkgver=2.0.0.1
+pkgrel=1
+pkgdesc="skarnet's small supervision suite"
+arch="i686 x86_64"
+url="http://www.skarnet.org/software/s6"
+license=ISC
+makedepends="skalibs-dev>=2.1.0.0 execline-dev>=2.0.0.0 musl-dev"
+subpackages=$pkgname-dev
+source="${url}/s6-$pkgver.tar.gz"
+
+build() {
+  cd "$srcdir/s6-$pkgver"
+
+  ./configure --enable-static-libc --prefix=/usr
+  make libs6.a
+  make
+}
+
+package() {
+  cd "$srcdir/s6-$pkgver"
+
+  make DESTDIR="$pkgdir/" install
+  install -D -m644 COPYING "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+}
+
+md5sums="11eb7cb3df048833dda18e0764468b4e  s6-2.0.0.1.tar.gz"
+sha256sums="c09d4874b8adc5685ac857a9ce5c573d8beecce053c0f4c3826a8aa35577156d  s6-2.0.0.1.tar.gz"
+sha512sums="fee333d631b4a7e3f7d1242f189892bc0fc2407c7f739d2f88d6faccd24f7a87cdc3736af15b0f875fbb13daae8179c81e8099e54527757d7f7bd7e41a4ebfd7  s6-2.0.0.1.tar.gz"

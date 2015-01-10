@@ -1,0 +1,36 @@
+# Maintainer: Lukas Braun <koomi+aur at hackerspace-bamberg dot de>
+# Contributor: David Arroyo <droyo@aqwari.us>
+pkgname=execline
+pkgver=2.0.1.0
+pkgrel=1
+pkgdesc="A (non-interactive) scripting language, like sh"
+arch="i686 x86_64"
+url="http://www.skarnet.org/software/execline"
+license=ISC
+makedepends="skalibs-dev>=2.1.0.0 musl-dev"
+subpackages=$pkgname-dev
+source="${url}/execline-$pkgver.tar.gz \
+	execlineb.eb"
+
+build() {
+  cd "$srcdir/execline-$pkgver"
+
+  ./configure --enable-static-libc --bindir=/usr/lib/execline
+  make libexecline.a	# for some reason building it via dependencies fails
+  make
+}
+
+package() {
+  cd "$srcdir/execline-$pkgver"
+
+  make DESTDIR="$pkgdir/" install
+  install -D -m755 "$srcdir/execlineb.eb" "$pkgdir/usr/bin/execlineb"
+  install -D -m644 COPYING "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+}
+
+md5sums="4d1b886c993703d599c87d4e2389ea9a  execline-2.0.1.0.tar.gz
+b9e51d0726a6760108228ebc26a46170  execlineb.eb"
+sha256sums="164d632483af20c81d188324fdda28c7476ef13c9e508d2ede51b3c181d229f6  execline-2.0.1.0.tar.gz
+70e1e8c90ccf81fd76aea1d786102dcb1e172b6ec06bf957a07722b1f70a2278  execlineb.eb"
+sha512sums="a4a351e2664d85349be2fd901a37d2d28e41ae9aecfdf4431a81aa4efe1fe3ec37ef298fc8172c5833b3580602db20c7cf355aac34bea7e8980b1d2230c4c1e8  execline-2.0.1.0.tar.gz
+17cae9a31fec072733a476ae9f89d0ed41b522054583dbbcf908961e9a4daf8dc4de575bb1a1b625f6dec76c83f72852b004ead57fd810c54d02eb0b9f4928f3  execlineb.eb"
