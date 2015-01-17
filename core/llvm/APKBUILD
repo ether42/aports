@@ -1,7 +1,7 @@
 # Contributor: William Pitcock <nenolod@dereferenced.org>
 # Maintainer: William Pitcock <nenolod@dereferenced.org>
 pkgname=llvm
-pkgver=3.5.0
+pkgver=3.5.1
 pkgrel=0
 pkgdesc="low level virtual machine compiler system"
 arch="x86 x86_64 armhf"
@@ -113,21 +113,21 @@ libs() {
 	mv "$pkgdir"/usr/lib/*.so "$subpkgdir"/usr/lib/
 }
 
-md5sums="d6987305a1a0e58e128c1374cd3b8fef  llvm-3.5.0.src.tar.xz
-27718dd13c7df83e15f997116bbb4aef  cfe-3.5.0.src.tar.xz
-02624d2a9144278c3808c00dbbab56c8  compiler-rt-3.5.0.src.tar.xz
+md5sums="2d3d8004f38852aa679e5945b8ce0b14  llvm-3.5.1.src.tar.xz
+93f9532f8f7e6f1d8e5c1116907051cb  cfe-3.5.1.src.tar.xz
+d626cfb8a9712cb92b820798ab5bc1f8  compiler-rt-3.5.1.src.tar.xz
 9660bd87babcb15a3df53f608410c484  llvm-dos-linux.patch
 832e665e4972afb94fb6c976a7e35c69  llvm-musl.patch
 12223082fec06d2eb30245983dd21326  compiler-rt-musl_compat.patch"
-sha256sums="28e199f368ef0a4666708f31c7991ad3bcc3a578342b0306526dd35f07595c03  llvm-3.5.0.src.tar.xz
-fc80992e004b06f6c7afb612de1cdaa9ac9d25811c55f94fcf7331d9b81cdb8b  cfe-3.5.0.src.tar.xz
-a4b3e655832bf8d9a357ea2c771db347237460e131988cbb96cda40ff39a8136  compiler-rt-3.5.0.src.tar.xz
+sha256sums="bf3275d2d7890015c8d8f5e6f4f882f8cf3bf51967297ebe74111d6d8b53be15  llvm-3.5.1.src.tar.xz
+6773f3f9cf815631cc7e779ec134ddd228dc8e9a250e1ea3a910610c59eb8f5c  cfe-3.5.1.src.tar.xz
+adf4b526f33e681aff5961f0821f5b514d3fc375410008842640b56a2e6a837a  compiler-rt-3.5.1.src.tar.xz
 38868dbdea86a878797fabd68cb56da225fb6250075e3542636ded650cad4744  llvm-dos-linux.patch
 1e4c4d9e2d76719c2fedc6fe1ce03e59a16521bdb2562e84255a82d510a4f894  llvm-musl.patch
 3dc5c3f0255434185033ca516a6b831257fa3d526e7898d2ca670eb311bd6ee8  compiler-rt-musl_compat.patch"
-sha512sums="b4d0f325dbdb0a8f10e5fd031954ef4b1971d8f99f4e4b53834801a2b74a7acde3f77c655c8355b407424b363edfb10f71d85fc370356dc52af5c636a1bba197  llvm-3.5.0.src.tar.xz
-b26a5e2cd81c150607c23b22fafc0d9c7f12b83b45e476b8e75bf5e99d42be7c98ffeac7349df664f01b00900864a01429860b298e48961861377a4b2daf3e49  cfe-3.5.0.src.tar.xz
-862cce2d6b398bd1a8399496a547e6ab976a31f676528beebfbea5fd7dc54aa72e1c25deefa12f6167096521eba74090565b0168806451da02ddac04e922fc48  compiler-rt-3.5.0.src.tar.xz
+sha512sums="a643ff173627e813b26077829b1af801b75daa5dcea540c4f05366ed57ef6aeafaf8b3fe4208d4c1b303a048a90ddac48a23488480c165637ae9218de140ae55  llvm-3.5.1.src.tar.xz
+bd904586f6155c05d2f7ddd05b86c28feae883cdc60e2cb3b48d4ae0ce55916064bcea414a46518d0fb73618f18a3f3fca6cc4cad81083428a2221299f5c5c7f  cfe-3.5.1.src.tar.xz
+3a4f093972b080f439c81c8b08793c311cea71afeda7ba7b4e32f19378b1cb420da7b594fa9f6a6f7826570438f67d42d3243c4b3503e1cf8a7dcedf52e8e590  compiler-rt-3.5.1.src.tar.xz
 7ca41dfe068fa0208c3d2d667e482717db02f9de27c059170d32538f5c81efd10a28358deb7dc11a20f3a9b165c775bd218bbe5e1463ea7e367932abb9b373bc  llvm-dos-linux.patch
 e9531f86521628a1f0b73e15da55c6d51c7283a0239bc481b89a73c5195ae605b6680e75cbcd9197b71ceab534082f86e0e4d39701edcbe9195cc01df97285b9  llvm-musl.patch
 e68bc5a5b1402486d3ae2f9c5909bd98ac411a2abed48fb6756e95839111bbb23f0dbf511873637dd73276da62d084797ac19b78a4cdac81f7ce945200d830df  compiler-rt-musl_compat.patch"
