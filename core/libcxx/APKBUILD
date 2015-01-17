@@ -1,7 +1,7 @@
 # Contributor: Jonathan Laver <jonathan.laver@gmail.com>
 
 pkgname=libcxx
-pkgver=3.5.0
+pkgver=3.5.1
 pkgrel=1
 pkgdesc="C++ standard library targeting C++0X"
 arch="all"
@@ -43,9 +43,9 @@ package() {
   install -Dm644 LICENSE.TXT "$pkgdir/usr/share/licenses/${pkgname}/LICENSE"
 }
 
-md5sums="d7b72d65307c677e1ed29a9c425e0421  libcxx-3.5.0.src.tar.xz
+md5sums="406f09b1dab529f3f7879f4d548329d2  libcxx-3.5.1.src.tar.xz
 1a5fbb5f25ba492a36df6846787bf0d1  libcxx-musl_compat.patch"
-sha256sums="8045da845a63e50c201939eda8290d45e5752a9385d4d626214300d4a4d0b1c0  libcxx-3.5.0.src.tar.xz
+sha256sums="a16d0ae0c0cf2c8cebb94fafcb907022cd4f8579ebac99a4c9919990a37ad475  libcxx-3.5.1.src.tar.xz
 ce0820f2e0cfdd51711e55f00fa1dad1039e62400b7159fe23f0dd4389a4acd2  libcxx-musl_compat.patch"
-sha512sums="9d48e42836edebc146f7ca4067c733d4bcb8f2f19f20ad44a9d8db570df2fd59da246300a52385d1398292c850db58b4e39432944a3833de7463753448702d17  libcxx-3.5.0.src.tar.xz
+sha512sums="3be33787c79aa5d03a3f507be20ef986215d6008e4f0370e3c5906d76a620bf27c9ed4c35f4561c1ac507a1b217fa7fc7577611e7205f3f2433c677bf86b8632  libcxx-3.5.1.src.tar.xz
 fd1e0b2e3d0ea6a42cd1e76697caf1b5b39306694fd6af083ef314659e80b1a5838150d09219d540856cb365fc39cfac8363e2d04dfb57f53b87dcd3b8e51aed  libcxx-musl_compat.patch"
