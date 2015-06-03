@@ -1,0 +1,187 @@
+Index: agg-2.4/src/platform/win32/agg_platform_support.cpp
+===================================================================
+--- agg-2.4/src/platform/win32/agg_platform_support.cpp	(wersja 104)
++++ agg-2.4/src/platform/win32/agg_platform_support.cpp	(wersja 105)
+@@ -1480,7 +1480,7 @@
+         tok.len = 0;
+         if(m_src_string == 0 || m_start == -1) return tok;
+ 
+-        register const char *pstr = m_src_string + m_start;
++        const char *pstr = m_src_string + m_start;
+ 
+         if(*pstr == 0) 
+         {
+Index: agg-2.4/src/platform/X11/agg_platform_support.cpp
+===================================================================
+--- agg-2.4/src/platform/X11/agg_platform_support.cpp	(wersja 104)
++++ agg-2.4/src/platform/X11/agg_platform_support.cpp	(wersja 105)
+@@ -702,7 +702,7 @@
+         {
+             fprintf(stderr,
+                    "RGB masks are not compatible with AGG pixel formats:\n"
+-                   "R=%08x, R=%08x, B=%08x\n", r_mask, g_mask, b_mask);
++                   "R=%08lx, R=%08lx, B=%08lx\n", r_mask, g_mask, b_mask);
+             XCloseDisplay(m_specific->m_display);
+             return false;
+         }
+Index: agg-2.4/src/ctrl/agg_scale_ctrl.cpp
+===================================================================
+--- agg-2.4/src/ctrl/agg_scale_ctrl.cpp	(wersja 104)
++++ agg-2.4/src/ctrl/agg_scale_ctrl.cpp	(wersja 105)
+@@ -415,9 +415,9 @@
+                 m_value1 = m_value2 - dv;
+             }
+             return true;
++        default:
++            return false;
+         }
+-
+-        return false;
+     }
+ 
+ 
+Index: agg-2.4/include/agg_renderer_scanline.h
+===================================================================
+--- agg-2.4/include/agg_renderer_scanline.h	(wersja 104)
++++ agg-2.4/include/agg_renderer_scanline.h	(wersja 105)
+@@ -65,7 +65,7 @@
+             // "rgba8" is needed. Otherwise it will be implicitly 
+             // converted in the loop many times.
+             //----------------------
+-            typename BaseRenderer::color_type ren_color(color);
++            typename BaseRenderer::color_type ren_color = color;
+ 
+             sl.reset(ras.min_x(), ras.max_x());
+             while(ras.sweep_scanline(sl))
+Index: agg-2.4/include/agg_basics.h
+===================================================================
+--- agg-2.4/include/agg_basics.h	(wersja 104)
++++ agg-2.4/include/agg_basics.h	(wersja 105)
+@@ -228,7 +228,7 @@
+     {
+         AGG_INLINE static unsigned mul(unsigned a, unsigned b)
+         {
+-            register unsigned q = a * b + (1 << (Shift-1));
++            unsigned q = a * b + (1 << (Shift-1));
+             return (q + (q >> Shift)) >> Shift;
+         }
+     };
+Index: agg-2.4/include/agg_renderer_markers.h
+===================================================================
+--- agg-2.4/include/agg_renderer_markers.h	(wersja 104)
++++ agg-2.4/include/agg_renderer_markers.h	(wersja 105)
+@@ -572,6 +572,7 @@
+                 case marker_dash:              dash(x, y, r);              break;
+                 case marker_dot:               dot(x, y, r);               break;
+                 case marker_pixel:             pixel(x, y, r);             break;
++                case end_of_markers: break;
+             }
+         }
+ 
+@@ -613,6 +614,7 @@
+                 case marker_dash:              do { dash             (int(*x), int(*y), int(r)); ++x; ++y; } while(--n); break;
+                 case marker_dot:               do { dot              (int(*x), int(*y), int(r)); ++x; ++y; } while(--n); break;
+                 case marker_pixel:             do { pixel            (int(*x), int(*y), int(r)); ++x; ++y; } while(--n); break;
++                case end_of_markers: break;
+             }                                                                                  
+         }
+         
+@@ -641,6 +643,7 @@
+                 case marker_dash:              do { dash             (int(*x), int(*y), int(*r)); ++x; ++y; ++r; } while(--n); break;
+                 case marker_dot:               do { dot              (int(*x), int(*y), int(*r)); ++x; ++y; ++r; } while(--n); break;
+                 case marker_pixel:             do { pixel            (int(*x), int(*y), int(*r)); ++x; ++y; ++r; } while(--n); break;
++                case end_of_markers: break;
+             }                                                                                  
+         }
+         
+@@ -669,6 +672,7 @@
+                 case marker_dash:              do { base_type::fill_color(*fc); dash             (int(*x), int(*y), int(*r)); ++x; ++y; ++r; ++fc; } while(--n); break;
+                 case marker_dot:               do { base_type::fill_color(*fc); dot              (int(*x), int(*y), int(*r)); ++x; ++y; ++r; ++fc; } while(--n); break;
+                 case marker_pixel:             do { base_type::fill_color(*fc); pixel            (int(*x), int(*y), int(*r)); ++x; ++y; ++r; ++fc; } while(--n); break;
++                case end_of_markers: break;
+             }
+         }
+         
+@@ -697,6 +701,7 @@
+                 case marker_dash:              do { base_type::fill_color(*fc); base_type::line_color(*lc); dash             (int(*x), int(*y), int(*r)); ++x; ++y; ++r; ++fc; ++lc; } while(--n); break;
+                 case marker_dot:               do { base_type::fill_color(*fc); base_type::line_color(*lc); dot              (int(*x), int(*y), int(*r)); ++x; ++y; ++r; ++fc; ++lc; } while(--n); break;
+                 case marker_pixel:             do { base_type::fill_color(*fc); base_type::line_color(*lc); pixel            (int(*x), int(*y), int(*r)); ++x; ++y; ++r; ++fc; ++lc; } while(--n); break;
++                case end_of_markers: break;
+             }
+         }
+     };
+Index: agg-2.4/include/agg_trans_affine.h
+===================================================================
+--- agg-2.4/include/agg_trans_affine.h	(wersja 104)
++++ agg-2.4/include/agg_trans_affine.h	(wersja 105)
+@@ -292,7 +292,7 @@
+     //------------------------------------------------------------------------
+     inline void trans_affine::transform(double* x, double* y) const
+     {
+-        register double tmp = *x;
++        double tmp = *x;
+         *x = tmp * sx  + *y * shx + tx;
+         *y = tmp * shy + *y * sy  + ty;
+     }
+@@ -300,7 +300,7 @@
+     //------------------------------------------------------------------------
+     inline void trans_affine::transform_2x2(double* x, double* y) const
+     {
+-        register double tmp = *x;
++        double tmp = *x;
+         *x = tmp * sx  + *y * shx;
+         *y = tmp * shy + *y * sy;
+     }
+@@ -308,9 +308,9 @@
+     //------------------------------------------------------------------------
+     inline void trans_affine::inverse_transform(double* x, double* y) const
+     {
+-        register double d = determinant_reciprocal();
+-        register double a = (*x - tx) * d;
+-        register double b = (*y - ty) * d;
++        double d = determinant_reciprocal();
++        double a = (*x - tx) * d;
++        double b = (*y - ty) * d;
+         *x = a * sy - b * shx;
+         *y = b * sx - a * shy;
+     }
+Index: agg-2.4/include/agg_image_accessors.h
+===================================================================
+--- agg-2.4/include/agg_image_accessors.h	(wersja 104)
++++ agg-2.4/include/agg_image_accessors.h	(wersja 105)
+@@ -174,8 +174,8 @@
+     private:
+         AGG_INLINE const int8u* pixel() const
+         {
+-            register int x = m_x;
+-            register int y = m_y;
++            int x = m_x;
++            int y = m_y;
+             if(x < 0) x = 0;
+             if(y < 0) y = 0;
+             if(x >= (int)m_pixf->width())  x = m_pixf->width() - 1;
+Index: agg-2.4/examples/line_patterns_clip.cpp
+===================================================================
+--- agg-2.4/examples/line_patterns_clip.cpp	(wersja 104)
++++ agg-2.4/examples/line_patterns_clip.cpp	(wersja 105)
+@@ -337,7 +337,7 @@
+     if(!app.load_img(0, "1"))
+     {
+         char buf[256];
+-        sprintf(buf, "There must be file 1%s\n", app.img_ext(), app.img_ext());
++        sprintf(buf, "There must be file 1%s\n", app.img_ext());
+         app.message(buf);
+         return 1;
+     }
+Index: agg-2.4/examples/mol_view.cpp
+===================================================================
+--- agg-2.4/examples/mol_view.cpp	(wersja 104)
++++ agg-2.4/examples/mol_view.cpp	(wersja 105)
+@@ -706,6 +706,7 @@
+                 return flag;
+ 
+             case bond_triple:
++            case bond_single:
+                 break;
+         }
+         return m_line1.vertex(x, y);

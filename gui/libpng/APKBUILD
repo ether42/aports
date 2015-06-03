@@ -1,0 +1,48 @@
+# Contributor: Carlo Landmeter <clandmeter@gmail.com>
+# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+pkgname=libpng
+pkgver=1.6.16
+_apngver=$pkgver
+pkgrel=0
+pkgdesc="Portable Network Graphics library"
+url="http://www.libpng.org/"
+arch="all"
+license="GPL"
+depends=
+depends_dev="zlib-dev"
+makedepends="$depends_dev" # gawk"
+subpackages="$pkgname-doc $pkgname-dev"
+source="http://downloads.sourceforge.net/$pkgname/$pkgname-$pkgver.tar.gz
+	http://downloads.sourceforge.net/sourceforge/libpng-apng/libpng-$_apngver-apng.patch.gz
+	"
+
+_builddir="$srcdir/$pkgname-$pkgver"
+
+prepare() {
+	cd "$_builddir"
+	gunzip -c "$srcdir"/libpng-$pkgver-apng.patch.gz | patch -p1 || return 1
+}
+
+build() {
+	cd "$_builddir"
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		|| return 1
+	make
+}
+
+package() {
+	cd "$srcdir/$pkgname-$pkgver"
+	make DESTDIR="$pkgdir" install
+	install -Dm644 LICENSE "${pkgdir}"/usr/share/licenses/${pkgname}/LICENSE || return 1
+	rm -f "$pkgdir"/usr/lib/*.la
+}
+
+md5sums="1a4ad377919ab15b54f6cb6a3ae2622d  libpng-1.6.16.tar.gz
+52de72a29e5d0428a0e527be74b99c24  libpng-1.6.16-apng.patch.gz"
+sha256sums="02f96b6bad5a381d36d7ba7a5d9be3b06f7fe6c274da00707509c23592a073ad  libpng-1.6.16.tar.gz
+70cd38ca898b944875c2393254bd1394bcd10ec2fe0aa739a96cf3fd8a3ac2e9  libpng-1.6.16-apng.patch.gz"
+sha512sums="8d96076306f8bb8b1160d53cba0f050c29969b981de9f2e34ea6b01709e59ff7c2c3b92d6237d7d15dd102a2838b5916b444b78d78ff0a7c2261f3acc75cfe68  libpng-1.6.16.tar.gz
+0fc052bac6202fa13f3f1272eee523c22acfe32eec7ea55e6159ba067650a8d869936757b52054c8a0a0a68e797918c159dc7910f2428053b6727a3ef0d9e236  libpng-1.6.16-apng.patch.gz"

@@ -1,0 +1,66 @@
+# Contributor: Elizabeth Jennifer Myers <elizabeth@sporksirc.net>
+# Maintainer: Tomasz Sterna <tomek@xiaoka.com>
+pkgname=agg
+pkgver=2.4
+pkgrel=1
+pkgdesc="A Rendering Engine for C++"
+url="http://antigrain.com"
+license="BSD"
+depends=""
+makedepends="autoconf automake libtool freetype-dev"
+install=""
+arch="all"
+subpackages="$pkgname-dev"
+source="http://www.antigrain.com/$pkgname-$pkgver.tar.gz
+	agg-2.4-depends.patch
+	agg-2.5-pkgconfig.patch
+	agg-2.4-no-SDL.patch
+	agg-svn-r37.patch
+	agg-svn-r94.patch
+	agg-svn-r105.patch"
+
+_builddir="$srcdir"/$pkgname-$pkgver
+prepare() {
+	cd $_builddir
+	for i in "$srcdir"/*.patch; do
+		msg "Applying ${i}"
+		patch -Np1 -i "$i" || return 1
+	done
+	# fix building against automake-1.12
+	sed -i '/^AM_C_PROTOTYPES/d' configure.in
+	sh ./autogen.sh || return 1
+}
+
+build() {
+	cd "$_builddir"
+	./configure --prefix=/usr --disable-static --enable-freetype --disable-examples || return 1
+	make || return 1
+}
+
+package() {
+	cd "$_builddir"
+	make DESTDIR="${pkgdir}" install || return 1
+	rm "$pkgdir"/usr/lib/*.la || return 1
+}
+
+md5sums="863d9992fd83c5d40fe1c011501ecf0e  agg-2.4.tar.gz
+47e53d4a2dfe2e594ba4a33814bb5609  agg-2.4-depends.patch
+43a19a7b1564c591e56c8d09a0fd8da5  agg-2.5-pkgconfig.patch
+b7aef5ba778d6014b49ff81944c6ffc5  agg-2.4-no-SDL.patch
+a3d635024c05f5bae3842ac85313f3ad  agg-svn-r37.patch
+0bf0e93deda2edfa65c31c43bc35a7c4  agg-svn-r94.patch
+1a98981f3c657486f62de8e4a604c546  agg-svn-r105.patch"
+sha256sums="0e751e3f2d48c061f78a30ab1f3181eae681d63dbede2350111693647e44a9af  agg-2.4.tar.gz
+e28d640a62bfa8623e2a919b570dc44f660f14f660766412453ffe46da001be6  agg-2.4-depends.patch
+42f8248ba531e756535d556467f8a340e4a956161260e94eeeb655e223c557c5  agg-2.5-pkgconfig.patch
+a7a75c770c87ef82301ad9fef0e04a1e956adaf4a2d9506390fb6de6fda38687  agg-2.4-no-SDL.patch
+f70900b8df09d2969830dbe0c245bab1f7b4fe5b5a68681de2d39f36403283fe  agg-svn-r37.patch
+dbe66d63b71cd88da61678237f34df99252fdab7147a2499285c04a180787de5  agg-svn-r94.patch
+7cc635902910655f4efe44ffe99447f7fa3f22a4c753448eecdae8fe05a4c910  agg-svn-r105.patch"
+sha512sums="2396df8e8c4c74f685af2759d6e92ef86323adce309845ca93c1d04a8feb4e694ca7c6b2002708f5727c350790868a4012375ca98b8fee421031595fb5eea7fb  agg-2.4.tar.gz
+38e0ef203fbf8435ebccb1bde5e231cf7ccc429e3bac562add2e4e2a6102009742b72acef9698f172b44c7b7778577ce9625bd04c8b48d4bc22de9bceaec9807  agg-2.4-depends.patch
+113ac9deb4d0992ef4bdaeb1654f5c1ab199d3865b525c573926b73b2351e9c551f2a7b77082f87fd78bcdab3036621b72bba9502028c35b28dc8f18acf11f53  agg-2.5-pkgconfig.patch
+d8a365151c9a43c252d853372fbffbe94a87ef45f6821ba11698e78d1bc5a39f5cd52e63db0559bdc65b67cfb0f5df9c642d733f60d8813d752e4478afe62ee0  agg-2.4-no-SDL.patch
+f25124442f16393805fa3fe315480545e0d3fdc2590765bd0a01ff3aa801eddc2c74696960b99fa4e670fac7b5cd880b05d3b13b0d8af0640a95429cb53b6346  agg-svn-r37.patch
+68329675bf7638801588f2b680984e38b0d8b4381fa6aed1fa8a5e35f1abfa6f0852fb3ffc9c2660e8314fb700b532b45c5064773d70b70f32ca679d1a15611a  agg-svn-r94.patch
+aa2eae97baf685c1fec8b05acfe5188e5d44af53bb55946f98ad7d85ff1cb6c09b8b2fc00d3548aa898804f38648d5d5e9225567d62f19e517001a91335c79dd  agg-svn-r105.patch"

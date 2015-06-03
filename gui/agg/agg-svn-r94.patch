@@ -1,0 +1,928 @@
+Index: agg-2.4/include/agg_span_interpolator_linear.h
+===================================================================
+--- agg-2.4/include/agg_span_interpolator_linear.h	(wersja 93)
++++ agg-2.4/include/agg_span_interpolator_linear.h	(wersja 94)
+@@ -38,8 +38,8 @@
+ 
+         //--------------------------------------------------------------------
+         span_interpolator_linear() {}
+-        span_interpolator_linear(const trans_type& trans) : m_trans(&trans) {}
+-        span_interpolator_linear(const trans_type& trans,
++        span_interpolator_linear(trans_type& trans) : m_trans(&trans) {}
++        span_interpolator_linear(trans_type& trans,
+                                  double x, double y, unsigned len) :
+             m_trans(&trans)
+         {
+@@ -48,7 +48,7 @@
+ 
+         //----------------------------------------------------------------
+         const trans_type& transformer() const { return *m_trans; }
+-        void transformer(const trans_type& trans) { m_trans = &trans; }
++        void transformer(trans_type& trans) { m_trans = &trans; }
+ 
+         //----------------------------------------------------------------
+         void begin(double x, double y, unsigned len)
+@@ -95,7 +95,7 @@
+         }
+ 
+     private:
+-        const trans_type* m_trans;
++        trans_type* m_trans;
+         dda2_line_interpolator m_li_x;
+         dda2_line_interpolator m_li_y;
+     };
+@@ -125,7 +125,7 @@
+             m_subdiv_size(1 << m_subdiv_shift),
+             m_subdiv_mask(m_subdiv_size - 1) {}
+ 
+-        span_interpolator_linear_subdiv(const trans_type& trans, 
++        span_interpolator_linear_subdiv(trans_type& trans, 
+                                         unsigned subdiv_shift = 4) : 
+             m_subdiv_shift(subdiv_shift),
+             m_subdiv_size(1 << m_subdiv_shift),
+@@ -132,7 +132,7 @@
+             m_subdiv_mask(m_subdiv_size - 1),
+             m_trans(&trans) {}
+ 
+-        span_interpolator_linear_subdiv(const trans_type& trans,
++        span_interpolator_linear_subdiv(trans_type& trans,
+                                         double x, double y, unsigned len,
+                                         unsigned subdiv_shift = 4) :
+             m_subdiv_shift(subdiv_shift),
+@@ -213,7 +213,7 @@
+         unsigned m_subdiv_shift;
+         unsigned m_subdiv_size;
+         unsigned m_subdiv_mask;
+-        const trans_type* m_trans;
++        trans_type* m_trans;
+         dda2_line_interpolator m_li_x;
+         dda2_line_interpolator m_li_y;
+         int      m_src_x;
+Index: agg-2.4/include/agg_conv_transform.h
+===================================================================
+--- agg-2.4/include/agg_conv_transform.h	(wersja 93)
++++ agg-2.4/include/agg_conv_transform.h	(wersja 94)
+@@ -29,7 +29,7 @@
+     template<class VertexSource, class Transformer=trans_affine> class conv_transform
+     {
+     public:
+-        conv_transform(VertexSource& source, const Transformer& tr) :
++        conv_transform(VertexSource& source, Transformer& tr) :
+             m_source(&source), m_trans(&tr) {}
+         void attach(VertexSource& source) { m_source = &source; }
+ 
+@@ -48,7 +48,7 @@
+             return cmd;
+         }
+ 
+-        void transformer(const Transformer& tr)
++        void transformer(Transformer& tr)
+         {
+             m_trans = &tr;
+         }
+@@ -59,7 +59,7 @@
+             operator = (const conv_transform<VertexSource>&);
+ 
+         VertexSource*      m_source;
+-        const Transformer* m_trans;
++        Transformer* m_trans;
+     };
+ 
+ 
+Index: agg-2.4/include/agg_span_image_filter.h
+===================================================================
+--- agg-2.4/include/agg_span_image_filter.h	(wersja 93)
++++ agg-2.4/include/agg_span_image_filter.h	(wersja 94)
+@@ -37,7 +37,7 @@
+         span_image_filter() {}
+         span_image_filter(source_type& src, 
+                           interpolator_type& interpolator,
+-                          const image_filter_lut* filter) : 
++                          image_filter_lut* filter) : 
+             m_src(&src),
+             m_interpolator(&interpolator),
+             m_filter(filter),
+@@ -59,7 +59,7 @@
+ 
+         //--------------------------------------------------------------------
+         void interpolator(interpolator_type& v)  { m_interpolator = &v; }
+-        void filter(const image_filter_lut& v)   { m_filter = &v; }
++        void filter(image_filter_lut& v)         { m_filter = &v; }
+         void filter_offset(double dx, double dy)
+         {
+             m_dx_dbl = dx;
+@@ -79,7 +79,7 @@
+     private:
+         source_type*            m_src;
+         interpolator_type*      m_interpolator;
+-        const image_filter_lut* m_filter;
++        image_filter_lut*       m_filter;
+         double   m_dx_dbl;
+         double   m_dy_dbl;
+         unsigned m_dx_int;
+@@ -109,7 +109,7 @@
+         //--------------------------------------------------------------------
+         span_image_resample_affine(source_type& src, 
+                                    interpolator_type& inter,
+-                                   const image_filter_lut& filter) :
++                                   image_filter_lut& filter) :
+             base_type(src, inter, &filter),
+             m_scale_limit(200.0),
+             m_blur_x(1.0),
+@@ -195,7 +195,7 @@
+         //--------------------------------------------------------------------
+         span_image_resample(source_type& src, 
+                             interpolator_type& inter,
+-                            const image_filter_lut& filter) :
++                            image_filter_lut& filter) :
+             base_type(src, inter, &filter),
+             m_scale_limit(20),
+             m_blur_x(image_subpixel_scale),
+Index: agg-2.4/include/agg_span_gradient_alpha.h
+===================================================================
+--- agg-2.4/include/agg_span_gradient_alpha.h	(wersja 93)
++++ agg-2.4/include/agg_span_gradient_alpha.h	(wersja 94)
+@@ -43,8 +43,8 @@
+ 
+         //--------------------------------------------------------------------
+         span_gradient_alpha(interpolator_type& inter,
+-                            const GradientF& gradient_function,
+-                            const AlphaF& alpha_function,
++                            GradientF& gradient_function,
++                            AlphaF& alpha_function,
+                             double d1, double d2) : 
+             m_interpolator(&inter),
+             m_gradient_function(&gradient_function),
+@@ -93,8 +93,8 @@
+ 
+     private:
+         interpolator_type* m_interpolator;
+-        const GradientF*   m_gradient_function;
+-        const AlphaF*      m_alpha_function;
++        GradientF*         m_gradient_function;
++        AlphaF*            m_alpha_function;
+         int                m_d1;
+         int                m_d2;
+     };
+Index: agg-2.4/include/agg_gsv_text.h
+===================================================================
+--- agg-2.4/include/agg_gsv_text.h	(wersja 93)
++++ agg-2.4/include/agg_gsv_text.h	(wersja 94)
+@@ -112,7 +112,7 @@
+     template<class Transformer = trans_affine> class gsv_text_outline
+     {
+     public:
+-        gsv_text_outline(gsv_text& text, const Transformer& trans) :
++        gsv_text_outline(gsv_text& text, Transformer& trans) :
+           m_polyline(text),
+           m_trans(m_polyline, trans)
+         {
+Index: agg-2.4/include/platform/agg_platform_support.h
+===================================================================
+--- agg-2.4/include/platform/agg_platform_support.h	(wersja 93)
++++ agg-2.4/include/platform/agg_platform_support.h	(wersja 94)
+@@ -606,6 +606,7 @@
+                     double(height) / double(m_initial_height));
+             }
+         }
++        trans_affine& trans_affine_resizing() { return m_resize_mtx; }
+         const    trans_affine& trans_affine_resizing() const { return m_resize_mtx; }
+         double   width()  const { return m_rbuf_window.width(); }
+         double   height() const { return m_rbuf_window.height(); }
+Index: agg-2.4/include/agg_span_gradient.h
+===================================================================
+--- agg-2.4/include/agg_span_gradient.h	(wersja 93)
++++ agg-2.4/include/agg_span_gradient.h	(wersja 94)
+@@ -58,8 +58,8 @@
+ 
+         //--------------------------------------------------------------------
+         span_gradient(interpolator_type& inter,
+-                      const GradientF& gradient_function,
+-                      const ColorF& color_function,
++                      GradientF& gradient_function,
++                      ColorF& color_function,
+                       double d1, double d2) : 
+             m_interpolator(&inter),
+             m_gradient_function(&gradient_function),
+@@ -77,8 +77,8 @@
+ 
+         //--------------------------------------------------------------------
+         void interpolator(interpolator_type& i) { m_interpolator = &i; }
+-        void gradient_function(const GradientF& gf) { m_gradient_function = &gf; }
+-        void color_function(const ColorF& cf) { m_color_function = &cf; }
++        void gradient_function(GradientF& gf) { m_gradient_function = &gf; }
++        void color_function(ColorF& cf) { m_color_function = &cf; }
+         void d1(double v) { m_d1 = iround(v * gradient_subpixel_scale); }
+         void d2(double v) { m_d2 = iround(v * gradient_subpixel_scale); }
+ 
+@@ -107,8 +107,8 @@
+ 
+     private:
+         interpolator_type* m_interpolator;
+-        const GradientF*   m_gradient_function;
+-        const ColorF*      m_color_function;
++        GradientF*         m_gradient_function;
++        ColorF*            m_color_function;
+         int                m_d1;
+         int                m_d2;
+     };
+Index: agg-2.4/include/agg_scanline_u.h
+===================================================================
+--- agg-2.4/include/agg_scanline_u.h	(wersja 93)
++++ agg-2.4/include/agg_scanline_u.h	(wersja 94)
+@@ -252,7 +252,7 @@
+         typedef base_type::coord_type coord_type;
+ 
+         scanline_u8_am() : base_type(), m_alpha_mask(0) {}
+-        scanline_u8_am(const AlphaMask& am) : base_type(), m_alpha_mask(&am) {}
++        scanline_u8_am(AlphaMask& am) : base_type(), m_alpha_mask(&am) {}
+ 
+         //--------------------------------------------------------------------
+         void finalize(int span_y)
+@@ -275,7 +275,7 @@
+         }
+ 
+     private:
+-        const AlphaMask* m_alpha_mask;
++        AlphaMask* m_alpha_mask;
+     };
+ 
+ 
+@@ -465,7 +465,7 @@
+ 
+ 
+         scanline32_u8_am() : base_type(), m_alpha_mask(0) {}
+-        scanline32_u8_am(const AlphaMask& am) : base_type(), m_alpha_mask(&am) {}
++        scanline32_u8_am(AlphaMask& am) : base_type(), m_alpha_mask(&am) {}
+ 
+         //--------------------------------------------------------------------
+         void finalize(int span_y)
+@@ -488,7 +488,7 @@
+         }
+ 
+     private:
+-        const AlphaMask* m_alpha_mask;
++        AlphaMask* m_alpha_mask;
+     };
+ 
+ 
+Index: agg-2.4/include/agg_scanline_storage_aa.h
+===================================================================
+--- agg-2.4/include/agg_scanline_storage_aa.h	(wersja 93)
++++ agg-2.4/include/agg_scanline_storage_aa.h	(wersja 94)
+@@ -198,7 +198,7 @@
+                 };
+ 
+                 const_iterator() : m_storage(0) {}
+-                const_iterator(const embedded_scanline& sl) :
++                const_iterator(embedded_scanline& sl) :
+                     m_storage(sl.m_storage),
+                     m_span_idx(sl.m_scanline.start_span)
+                 {
+@@ -223,7 +223,7 @@
+                     m_span.covers = m_storage->covers_by_index(s.covers_id);
+                 }
+ 
+-                const scanline_storage_aa* m_storage;
++                scanline_storage_aa* m_storage;
+                 unsigned                   m_span_idx;
+                 span                       m_span;
+             };
+@@ -557,9 +557,9 @@
+                 };
+ 
+                 const_iterator() : m_ptr(0) {}
+-                const_iterator(const embedded_scanline& sl) :
+-                    m_ptr(sl.m_ptr),
+-                    m_dx(sl.m_dx)
++                const_iterator(const embedded_scanline* sl) :
++                    m_ptr(sl->m_ptr),
++                    m_dx(sl->m_dx)
+                 {
+                     init_span();
+                 }
+@@ -613,7 +613,7 @@
+             void     reset(int, int)     {}
+             unsigned num_spans()   const { return m_num_spans;  }
+             int      y()           const { return m_y;          }
+-            const_iterator begin() const { return const_iterator(*this); }
++            const_iterator begin() const { return const_iterator(this); }
+ 
+ 
+         private:
+Index: agg-2.4/include/agg_span_image_filter_rgba.h
+===================================================================
+--- agg-2.4/include/agg_span_image_filter_rgba.h	(wersja 93)
++++ agg-2.4/include/agg_span_image_filter_rgba.h	(wersja 94)
+@@ -423,7 +423,7 @@
+         span_image_filter_rgba_2x2() {}
+         span_image_filter_rgba_2x2(source_type& src, 
+                                    interpolator_type& inter,
+-                                   const image_filter_lut& filter) :
++                                   image_filter_lut& filter) :
+             base_type(src, inter, &filter) 
+         {}
+ 
+@@ -542,7 +542,7 @@
+         span_image_filter_rgba() {}
+         span_image_filter_rgba(source_type& src, 
+                                interpolator_type& inter,
+-                               const image_filter_lut& filter) :
++                               image_filter_lut& filter) :
+             base_type(src, inter, &filter) 
+         {}
+ 
+@@ -660,7 +660,7 @@
+         span_image_resample_rgba_affine() {}
+         span_image_resample_rgba_affine(source_type& src, 
+                                         interpolator_type& inter,
+-                                        const image_filter_lut& filter) :
++                                        image_filter_lut& filter) :
+             base_type(src, inter, filter) 
+         {}
+ 
+@@ -779,7 +779,7 @@
+         span_image_resample_rgba() {}
+         span_image_resample_rgba(source_type& src, 
+                                  interpolator_type& inter,
+-                                 const image_filter_lut& filter) :
++                                 image_filter_lut& filter) :
+             base_type(src, inter, filter)
+         {}
+ 
+Index: agg-2.4/include/agg_image_accessors.h
+===================================================================
+--- agg-2.4/include/agg_image_accessors.h	(wersja 93)
++++ agg-2.4/include/agg_image_accessors.h	(wersja 94)
+@@ -32,7 +32,7 @@
+         enum pix_width_e { pix_width = pixfmt_type::pix_width };
+ 
+         image_accessor_clip() {}
+-        explicit image_accessor_clip(const pixfmt_type& pixf, 
++        explicit image_accessor_clip(pixfmt_type& pixf, 
+                                      const color_type& bk) : 
+             m_pixf(&pixf)
+         {
+@@ -39,7 +39,7 @@
+             pixfmt_type::make_pix(m_bk_buf, bk);
+         }
+ 
+-        void attach(const pixfmt_type& pixf)
++        void attach(pixfmt_type& pixf)
+         {
+             m_pixf = &pixf;
+         }
+@@ -115,11 +115,11 @@
+         enum pix_width_e { pix_width = pixfmt_type::pix_width };
+ 
+         image_accessor_no_clip() {}
+-        explicit image_accessor_no_clip(const pixfmt_type& pixf) : 
++        explicit image_accessor_no_clip(pixfmt_type& pixf) : 
+             m_pixf(&pixf) 
+         {}
+ 
+-        void attach(const pixfmt_type& pixf)
++        void attach(pixfmt_type& pixf)
+         {
+             m_pixf = &pixf;
+         }
+@@ -162,11 +162,11 @@
+         enum pix_width_e { pix_width = pixfmt_type::pix_width };
+ 
+         image_accessor_clone() {}
+-        explicit image_accessor_clone(const pixfmt_type& pixf) : 
++        explicit image_accessor_clone(pixfmt_type& pixf) : 
+             m_pixf(&pixf) 
+         {}
+ 
+-        void attach(const pixfmt_type& pixf)
++        void attach(pixfmt_type& pixf)
+         {
+             m_pixf = &pixf;
+         }
+@@ -238,13 +238,13 @@
+         enum pix_width_e { pix_width = pixfmt_type::pix_width };
+ 
+         image_accessor_wrap() {}
+-        explicit image_accessor_wrap(const pixfmt_type& pixf) : 
++        explicit image_accessor_wrap(pixfmt_type& pixf) : 
+             m_pixf(&pixf), 
+             m_wrap_x(pixf.width()), 
+             m_wrap_y(pixf.height())
+         {}
+ 
+-        void attach(const pixfmt_type& pixf)
++        void attach(pixfmt_type& pixf)
+         {
+             m_pixf = &pixf;
+         }
+Index: agg-2.4/include/agg_renderer_outline_aa.h
+===================================================================
+--- agg-2.4/include/agg_renderer_outline_aa.h	(wersja 93)
++++ agg-2.4/include/agg_renderer_outline_aa.h	(wersja 94)
+@@ -474,7 +474,7 @@
+         };
+ 
+         //---------------------------------------------------------------------
+-        line_interpolator_aa_base(renderer_type& ren, const line_parameters& lp) :
++        line_interpolator_aa_base(renderer_type& ren, line_parameters& lp) :
+             m_lp(&lp),
+             m_li(lp.vertical ? line_dbl_hr(lp.x2 - lp.x1) :
+                                line_dbl_hr(lp.y2 - lp.y1),
+@@ -550,7 +550,7 @@
+             operator = (const line_interpolator_aa_base<Renderer>&);
+ 
+     protected:
+-        const line_parameters* m_lp;
++        line_parameters* m_lp;
+         dda2_line_interpolator m_li;
+         renderer_type&         m_ren;
+         int m_len;
+@@ -582,7 +582,7 @@
+         typedef line_interpolator_aa_base<Renderer> base_type;
+ 
+         //---------------------------------------------------------------------
+-        line_interpolator_aa0(renderer_type& ren, const line_parameters& lp) :
++        line_interpolator_aa0(renderer_type& ren, line_parameters& lp) :
+             line_interpolator_aa_base<Renderer>(ren, lp),
+             m_di(lp.x1, lp.y1, lp.x2, lp.y2, 
+                  lp.x1 & ~line_subpixel_mask, lp.y1 & ~line_subpixel_mask)
+@@ -676,7 +676,7 @@
+         typedef line_interpolator_aa_base<Renderer> base_type;
+ 
+         //---------------------------------------------------------------------
+-        line_interpolator_aa1(renderer_type& ren, const line_parameters& lp, 
++        line_interpolator_aa1(renderer_type& ren, line_parameters& lp, 
+                               int sx, int sy) :
+             line_interpolator_aa_base<Renderer>(ren, lp),
+             m_di(lp.x1, lp.y1, lp.x2, lp.y2, sx, sy,
+@@ -887,7 +887,7 @@
+         typedef line_interpolator_aa_base<Renderer> base_type;
+ 
+         //---------------------------------------------------------------------
+-        line_interpolator_aa2(renderer_type& ren, const line_parameters& lp, 
++        line_interpolator_aa2(renderer_type& ren, line_parameters& lp, 
+                               int ex, int ey) :
+             line_interpolator_aa_base<Renderer>(ren, lp),
+             m_di(lp.x1, lp.y1, lp.x2, lp.y2, ex, ey, 
+@@ -1036,7 +1036,7 @@
+         typedef line_interpolator_aa_base<Renderer> base_type;
+ 
+         //---------------------------------------------------------------------
+-        line_interpolator_aa3(renderer_type& ren, const line_parameters& lp, 
++        line_interpolator_aa3(renderer_type& ren, line_parameters& lp, 
+                               int sx, int sy, int ex, int ey) :
+             line_interpolator_aa_base<Renderer>(ren, lp),
+             m_di(lp.x1, lp.y1, lp.x2, lp.y2, sx, sy, ex, ey, 
+@@ -1350,7 +1350,7 @@
+         typedef typename base_ren_type::color_type color_type;
+ 
+         //---------------------------------------------------------------------
+-        renderer_outline_aa(base_ren_type& ren, const line_profile_aa& prof) :
++        renderer_outline_aa(base_ren_type& ren, line_profile_aa& prof) :
+             m_ren(&ren),
+             m_profile(&prof),
+             m_clip_box(0,0,0,0),
+@@ -1363,8 +1363,8 @@
+         const color_type& color() const { return m_color; }
+ 
+         //---------------------------------------------------------------------
+-        void profile(const line_profile_aa& prof) { m_profile = &prof; }
+-        const line_profile_aa& profile() const { return *m_profile; }
++        void profile(line_profile_aa& prof) { m_profile = &prof; }
++        line_profile_aa& profile() const { return *m_profile; }
+         line_profile_aa& profile() { return *m_profile; }
+ 
+         //---------------------------------------------------------------------
+@@ -1546,7 +1546,7 @@
+         }
+ 
+         //-------------------------------------------------------------------------
+-        void line0_no_clip(const line_parameters& lp)
++        void line0_no_clip(line_parameters& lp)
+         {
+             if(lp.len > line_max_length)
+             {
+@@ -1572,7 +1572,7 @@
+         }
+ 
+         //-------------------------------------------------------------------------
+-        void line0(const line_parameters& lp)
++        void line0(line_parameters& lp)
+         {
+             if(m_clipping)
+             {
+@@ -1602,7 +1602,7 @@
+         }
+ 
+         //-------------------------------------------------------------------------
+-        void line1_no_clip(const line_parameters& lp, int sx, int sy)
++        void line1_no_clip(line_parameters& lp, int sx, int sy)
+         {
+             if(lp.len > line_max_length)
+             {
+@@ -1627,7 +1627,7 @@
+ 
+ 
+         //-------------------------------------------------------------------------
+-        void line1(const line_parameters& lp, int sx, int sy)
++        void line1(line_parameters& lp, int sx, int sy)
+         {
+             if(m_clipping)
+             {
+@@ -1670,7 +1670,7 @@
+         }
+ 
+         //-------------------------------------------------------------------------
+-        void line2_no_clip(const line_parameters& lp, int ex, int ey)
++        void line2_no_clip(line_parameters& lp, int ex, int ey)
+         {
+             if(lp.len > line_max_length)
+             {
+@@ -1694,7 +1694,7 @@
+         }
+ 
+         //-------------------------------------------------------------------------
+-        void line2(const line_parameters& lp, int ex, int ey)
++        void line2(line_parameters& lp, int ex, int ey)
+         {
+             if(m_clipping)
+             {
+@@ -1737,7 +1737,7 @@
+         }
+ 
+         //-------------------------------------------------------------------------
+-        void line3_no_clip(const line_parameters& lp, 
++        void line3_no_clip(line_parameters& lp, 
+                            int sx, int sy, int ex, int ey)
+         {
+             if(lp.len > line_max_length)
+@@ -1765,7 +1765,7 @@
+         }
+ 
+         //-------------------------------------------------------------------------
+-        void line3(const line_parameters& lp, 
++        void line3(line_parameters& lp, 
+                    int sx, int sy, int ex, int ey)
+         {
+             if(m_clipping)
+@@ -1824,7 +1824,7 @@
+ 
+     private:
+         base_ren_type*         m_ren;
+-        const line_profile_aa* m_profile; 
++        line_profile_aa* m_profile; 
+         color_type             m_color;
+         rect_i                 m_clip_box;
+         bool                   m_clipping;
+Index: agg-2.4/include/agg_renderer_outline_image.h
+===================================================================
+--- agg-2.4/include/agg_renderer_outline_image.h	(wersja 93)
++++ agg-2.4/include/agg_renderer_outline_image.h	(wersja 94)
+@@ -94,7 +94,7 @@
+         typedef typename filter_type::color_type color_type;
+ 
+         //--------------------------------------------------------------------
+-        line_image_pattern(const Filter& filter) :
++        line_image_pattern(Filter& filter) :
+             m_filter(&filter),
+             m_dilation(filter.dilation() + 1),
+             m_dilation_hr(m_dilation << line_subpixel_shift),
+@@ -110,7 +110,7 @@
+         // Create
+         //--------------------------------------------------------------------
+         template<class Source> 
+-        line_image_pattern(const Filter& filter, const Source& src) :
++        line_image_pattern(Filter& filter, const Source& src) :
+             m_filter(&filter),
+             m_dilation(filter.dilation() + 1),
+             m_dilation_hr(m_dilation << line_subpixel_shift),
+@@ -235,12 +235,12 @@
+         typedef line_image_pattern<Filter> base_type;
+ 
+         //--------------------------------------------------------------------
+-        line_image_pattern_pow2(const Filter& filter) :
++        line_image_pattern_pow2(Filter& filter) :
+             line_image_pattern<Filter>(filter), m_mask(line_subpixel_mask) {}
+ 
+         //--------------------------------------------------------------------
+         template<class Source> 
+-        line_image_pattern_pow2(const Filter& filter, const Source& src) :
++        line_image_pattern_pow2(Filter& filter, const Source& src) :
+             line_image_pattern<Filter>(filter), m_mask(line_subpixel_mask)
+         {
+             create(src);
+@@ -839,7 +839,7 @@
+ 
+ 
+         //---------------------------------------------------------------------
+-        renderer_outline_image(base_ren_type& ren, const pattern_type& patt) :
++        renderer_outline_image(base_ren_type& ren, pattern_type& patt) :
+             m_ren(&ren),
+             m_pattern(&patt),
+             m_start(0),
+@@ -850,8 +850,8 @@
+         void attach(base_ren_type& ren) { m_ren = &ren; }
+ 
+         //---------------------------------------------------------------------
+-        void pattern(const pattern_type& p) { m_pattern = &p; }
+-        const pattern_type& pattern() const { return *m_pattern; }
++        void pattern(pattern_type& p) { m_pattern = &p; }
++        pattern_type& pattern() const { return *m_pattern; }
+ 
+         //---------------------------------------------------------------------
+         void reset_clipping() { m_clipping = false; }
+@@ -1018,7 +1018,7 @@
+ 
+     private:
+         base_ren_type*      m_ren;
+-        const pattern_type* m_pattern;
++        pattern_type* m_pattern;
+         int                 m_start;
+         double              m_scale_x;
+         rect_i              m_clip_box;
+Index: agg-2.4/include/agg_span_interpolator_adaptor.h
+===================================================================
+--- agg-2.4/include/agg_span_interpolator_adaptor.h	(wersja 93)
++++ agg-2.4/include/agg_span_interpolator_adaptor.h	(wersja 94)
+@@ -32,8 +32,8 @@
+ 
+         //--------------------------------------------------------------------
+         span_interpolator_adaptor() {}
+-        span_interpolator_adaptor(const trans_type& trans, 
+-                                  const distortion_type& dist) :
++        span_interpolator_adaptor(trans_type& trans, 
++                                  distortion_type& dist) :
+             base_type(trans),
+             m_distortion(&dist)
+         {   
+@@ -40,8 +40,8 @@
+         }
+ 
+         //--------------------------------------------------------------------
+-        span_interpolator_adaptor(const trans_type& trans,
+-                                  const distortion_type& dist,
++        span_interpolator_adaptor(trans_type& trans,
++                                  distortion_type& dist,
+                                   double x, double y, unsigned len) :
+             base_type(trans, x, y, len),
+             m_distortion(&dist)
+@@ -49,13 +49,13 @@
+         }
+ 
+         //--------------------------------------------------------------------
+-        const distortion_type& distortion() const
++        distortion_type& distortion() const
+         {
+             return *m_distortion;
+         }
+ 
+         //--------------------------------------------------------------------
+-        void distortion(const distortion_type& dist)
++        void distortion(distortion_type& dist)
+         {
+             m_distortion = dist;
+         }
+@@ -69,7 +69,7 @@
+ 
+     private:
+         //--------------------------------------------------------------------
+-        const distortion_type* m_distortion;
++        distortion_type* m_distortion;
+     };
+ }
+ 
+Index: agg-2.4/include/agg_path_storage.h
+===================================================================
+--- agg-2.4/include/agg_path_storage.h	(wersja 93)
++++ agg-2.4/include/agg_path_storage.h	(wersja 94)
+@@ -490,7 +490,7 @@
+             m_stop(false)
+         {}
+ 
+-        poly_container_reverse_adaptor(const Container& data, bool closed) :
++        poly_container_reverse_adaptor(Container& data, bool closed) :
+             m_container(&data), 
+             m_index(-1),
+             m_closed(closed),
+@@ -497,7 +497,7 @@
+             m_stop(false)
+         {}
+ 
+-        void init(const Container& data, bool closed)
++        void init(Container& data, bool closed)
+         {
+             m_container = &data;
+             m_index = m_container->size() - 1;
+@@ -531,7 +531,7 @@
+         }
+ 
+     private:
+-        const Container* m_container;
++        Container* m_container;
+         int  m_index;
+         bool m_closed;
+         bool m_stop;
+Index: agg-2.4/include/agg_span_image_filter_rgb.h
+===================================================================
+--- agg-2.4/include/agg_span_image_filter_rgb.h	(wersja 93)
++++ agg-2.4/include/agg_span_image_filter_rgb.h	(wersja 94)
+@@ -411,7 +411,7 @@
+         span_image_filter_rgb_2x2() {}
+         span_image_filter_rgb_2x2(source_type& src, 
+                                   interpolator_type& inter,
+-                                  const image_filter_lut& filter) :
++                                  image_filter_lut& filter) :
+             base_type(src, inter, &filter) 
+         {}
+ 
+@@ -524,7 +524,7 @@
+         span_image_filter_rgb() {}
+         span_image_filter_rgb(source_type& src, 
+                               interpolator_type& inter,
+-                              const image_filter_lut& filter) :
++                              image_filter_lut& filter) :
+             base_type(src, inter, &filter) 
+         {}
+ 
+@@ -639,7 +639,7 @@
+         span_image_resample_rgb_affine() {}
+         span_image_resample_rgb_affine(source_type& src, 
+                                        interpolator_type& inter,
+-                                       const image_filter_lut& filter) :
++                                       image_filter_lut& filter) :
+             base_type(src, inter, filter) 
+         {}
+ 
+@@ -754,7 +754,7 @@
+         span_image_resample_rgb() {}
+         span_image_resample_rgb(source_type& src, 
+                                 interpolator_type& inter,
+-                                const image_filter_lut& filter) :
++                                image_filter_lut& filter) :
+             base_type(src, inter, filter)
+         {}
+ 
+Index: agg-2.4/include/agg_span_image_filter_gray.h
+===================================================================
+--- agg-2.4/include/agg_span_image_filter_gray.h	(wersja 93)
++++ agg-2.4/include/agg_span_image_filter_gray.h	(wersja 94)
+@@ -332,7 +332,7 @@
+         span_image_filter_gray_2x2() {}
+         span_image_filter_gray_2x2(source_type& src, 
+                                    interpolator_type& inter,
+-                                   const image_filter_lut& filter) :
++                                   image_filter_lut& filter) :
+             base_type(src, inter, &filter) 
+         {}
+ 
+@@ -427,7 +427,7 @@
+         span_image_filter_gray() {}
+         span_image_filter_gray(source_type& src, 
+                                interpolator_type& inter,
+-                               const image_filter_lut& filter) :
++                               image_filter_lut& filter) :
+             base_type(src, inter, &filter) 
+         {}
+ 
+@@ -526,7 +526,7 @@
+         span_image_resample_gray_affine() {}
+         span_image_resample_gray_affine(source_type& src, 
+                                         interpolator_type& inter,
+-                                        const image_filter_lut& filter) :
++                                        image_filter_lut& filter) :
+             base_type(src, inter, filter) 
+         {}
+ 
+@@ -628,7 +628,7 @@
+         span_image_resample_gray() {}
+         span_image_resample_gray(source_type& src, 
+                                  interpolator_type& inter,
+-                                 const image_filter_lut& filter) :
++                                 image_filter_lut& filter) :
+             base_type(src, inter, filter)
+         {}
+ 
+Index: agg-2.4/include/agg_scanline_storage_bin.h
+===================================================================
+--- agg-2.4/include/agg_scanline_storage_bin.h	(wersja 93)
++++ agg-2.4/include/agg_scanline_storage_bin.h	(wersja 94)
+@@ -64,9 +64,9 @@
+             {
+             public:
+                 const_iterator() : m_storage(0) {}
+-                const_iterator(const embedded_scanline& sl) :
+-                    m_storage(sl.m_storage),
+-                    m_span_idx(sl.m_scanline.start_span)
++                const_iterator(const embedded_scanline* sl) :
++                    m_storage(sl->m_storage),
++                    m_span_idx(sl->m_scanline.start_span)
+                 {
+                     m_span = m_storage->span_by_index(m_span_idx);
+                 }
+@@ -90,7 +90,7 @@
+ 
+ 
+             //-----------------------------------------------------------
+-            embedded_scanline(const scanline_storage_bin& storage) :
++            embedded_scanline(scanline_storage_bin& storage) :
+                 m_storage(&storage)
+             {
+                 setup(0);
+@@ -100,7 +100,7 @@
+             void     reset(int, int)     {}
+             unsigned num_spans()   const { return m_scanline.num_spans;  }
+             int      y()           const { return m_scanline.y;          }
+-            const_iterator begin() const { return const_iterator(*this); }
++            const_iterator begin() const { return const_iterator(this); }
+ 
+             //-----------------------------------------------------------
+             void setup(unsigned scanline_idx)
+@@ -110,7 +110,7 @@
+             }
+ 
+         private:
+-            const scanline_storage_bin* m_storage;
++            scanline_storage_bin*       m_storage;
+             scanline_data               m_scanline;
+             unsigned                    m_scanline_idx;
+         };
+@@ -362,9 +362,9 @@
+                 };
+ 
+                 const_iterator() : m_ptr(0) {}
+-                const_iterator(const embedded_scanline& sl) :
+-                    m_ptr(sl.m_ptr),
+-                    m_dx(sl.m_dx)
++                const_iterator(const embedded_scanline* sl) :
++                    m_ptr(sl->m_ptr),
++                    m_dx(sl->m_dx)
+                 {
+                     m_span.x   = read_int32() + m_dx;
+                     m_span.len = read_int32();
+@@ -405,7 +405,7 @@
+             void     reset(int, int)     {}
+             unsigned num_spans()   const { return m_num_spans;  }
+             int      y()           const { return m_y;          }
+-            const_iterator begin() const { return const_iterator(*this); }
++            const_iterator begin() const { return const_iterator(this); }
+ 
+ 
+         private:
+Index: agg-2.4/include/agg_pixfmt_amask_adaptor.h
+===================================================================
+--- agg-2.4/include/agg_pixfmt_amask_adaptor.h	(wersja 93)
++++ agg-2.4/include/agg_pixfmt_amask_adaptor.h	(wersja 94)
+@@ -59,12 +59,12 @@
+ 
+ 
+     public:
+-        pixfmt_amask_adaptor(pixfmt_type& pixf, const amask_type& mask) :
++        pixfmt_amask_adaptor(pixfmt_type& pixf, amask_type& mask) :
+             m_pixf(&pixf), m_mask(&mask), m_span()
+         {}
+ 
+-        void attach_pixfmt(pixfmt_type& pixf)          { m_pixf = &pixf; }
+-        void attach_alpha_mask(const amask_type& mask) { m_mask = &mask; }
++        void attach_pixfmt(pixfmt_type& pixf) { m_pixf = &pixf; }
++        void attach_alpha_mask(amask_type& mask) { m_mask = &mask; }
+ 
+         //--------------------------------------------------------------------
+         template<class PixFmt2>
+Index: agg-2.4/include/agg_span_interpolator_trans.h
+===================================================================
+--- agg-2.4/include/agg_span_interpolator_trans.h	(wersja 93)
++++ agg-2.4/include/agg_span_interpolator_trans.h	(wersja 94)
+@@ -39,8 +39,8 @@
+ 
+         //--------------------------------------------------------------------
+         span_interpolator_trans() {}
+-        span_interpolator_trans(const trans_type& trans) : m_trans(&trans) {}
+-        span_interpolator_trans(const trans_type& trans,
++        span_interpolator_trans(trans_type& trans) : m_trans(&trans) {}
++        span_interpolator_trans(trans_type& trans,
+                                 double x, double y, unsigned) :
+             m_trans(&trans)
+         {
+@@ -80,7 +80,7 @@
+         }
+ 
+     private:
+-        const trans_type* m_trans;
++        trans_type*       m_trans;
+         double            m_x;
+         double            m_y;
+         int               m_ix;
+Index: agg-2.4/examples/compositing2.cpp
+===================================================================
+--- agg-2.4/examples/compositing2.cpp	(wersja 93)
++++ agg-2.4/examples/compositing2.cpp	(wersja 94)
+@@ -144,7 +144,7 @@
+ 
+ 
+     template<class RenBase, class ColorRamp> 
+-    void radial_shape(RenBase& rbase, const ColorRamp& colors,
++    void radial_shape(RenBase& rbase, ColorRamp& colors,
+                       double x1, double y1, double x2, double y2)
+     {
+         typedef RenBase renderer_base_type;
