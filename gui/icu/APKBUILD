@@ -1,0 +1,75 @@
+# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+pkgname=icu
+pkgver=55.1
+
+# convert x.y.z to x_y_z
+_ver=${pkgver//./_}
+
+pkgrel=0
+pkgdesc="International Components for Unicode library"
+url="http://www.icu-project.org/"
+arch="all"
+license="custom:icu"
+subpackages="$pkgname-dev $pkgname-doc $pkgname-libs"
+depends=
+makedepends=
+source="http://download.icu-project.org/files/icu4c/${pkgver}/${pkgname}4c-$_ver-src.tgz
+	icu-timezone.patch
+	"
+
+_builddir="$srcdir"/icu/source
+
+prepare() {
+	cd "$_builddir"
+	update_config_sub || return 1
+
+	local x
+	# https://bugs.icu-project.org/trac/ticket/6102
+	for x in ARFLAGS CFLAGS CPPFLAGS CXXFLAGS FFLAGS LDFLAGS; do
+		sed -i -e "/^${x} =.*/s:@${x}@::" "config/Makefile.inc.in" \
+			|| return 1
+	done
+
+	for i in $source; do
+		case "$i" in
+		*.patch)
+			msg "Applying $i"
+			patch -p1 -i "$srcdir"/$i || return 1
+			;;
+		esac
+	done
+}
+
+build() {
+	cd "$_builddir"
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--sysconfdir=/etc \
+		--with-data-packaging=library \
+		--disable-samples \
+		--mandir=/usr/share/man \
+		|| return 1
+	make || return 1
+}
+
+package() {
+	cd "$_builddir"
+	make -j1 DESTDIR="$pkgdir" install || return 1
+	chmod +x "$pkgdir"/usr/bin/icu-config
+	install -Dm644 "$srcdir"/icu/license.html \
+		"$pkgdir"/usr/share/licenses/icu/license.html
+}
+
+libs() {
+	default_libs
+	replaces="icu"
+}
+
+md5sums="e2d523df79d6cb7855c2fbe284f4db29  icu4c-55_1-src.tgz
+2c81d9c9a6ea0af5b7391e001f37a5e0  icu-timezone.patch"
+sha256sums="e16b22cbefdd354bec114541f7849a12f8fc2015320ca5282ee4fd787571457b  icu4c-55_1-src.tgz
+1c3c432228ee254af7adc995d65b65a4c9dac3b868fe1e49fe588a0ffa55a158  icu-timezone.patch"
+sha512sums="21a3eb2c3678cd27b659eed073f8f1bd99c9751291d077820e9a370fd90b7d9b3bf414cc03dec4acb7fa61087e02d04f9f40e91a32c5180c718e2102fbd0cd35  icu4c-55_1-src.tgz
+40489c36e28e160f08e045acab6c19cdb712ad3b7f87f67099deac7d579aaf13d8841cd3278a6bb0e998b5c34a378348a13fcc8bb14c9c4eb4f6adbd10d66825  icu-timezone.patch"
