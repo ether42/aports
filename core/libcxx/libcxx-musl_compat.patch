@@ -97,7 +97,7 @@ index 79cb5c9..951119c 100644
      LDSHARED_FLAGS="-o libc++.so.1.0 \
          -shared -nodefaultlibs -Wl,-soname,libc++.so.1 \
 -        -lpthread -lrt -lc -lstdc++"
-+        -Wl,--as-needed -lpthread -lrt -lc -Wl,-Bstatic -lc++abi -Wl,-Bdynamic"
++        -Wl,--as-needed -lpthread -lrt -lc -Wl,-Bstatic,--whole-archive -lc++abi -Wl,-Bdynamic,--no-whole-archive"
      ;;
  esac
  

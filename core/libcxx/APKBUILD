@@ -2,7 +2,7 @@
 
 pkgname=libcxx
 pkgver=3.5.1
-pkgrel=1
+pkgrel=2
 pkgdesc="C++ standard library targeting C++0X"
 arch="all"
 url="http://libcxx.llvm.org/"
@@ -44,8 +44,8 @@ package() {
 }
 
 md5sums="406f09b1dab529f3f7879f4d548329d2  libcxx-3.5.1.src.tar.xz
-1a5fbb5f25ba492a36df6846787bf0d1  libcxx-musl_compat.patch"
+96ab314a4ba4d7508013f57510a6a0f9  libcxx-musl_compat.patch"
 sha256sums="a16d0ae0c0cf2c8cebb94fafcb907022cd4f8579ebac99a4c9919990a37ad475  libcxx-3.5.1.src.tar.xz
-ce0820f2e0cfdd51711e55f00fa1dad1039e62400b7159fe23f0dd4389a4acd2  libcxx-musl_compat.patch"
+a70ba808d06ef7248be9a5c635ddf8e840c62c0f4d0c6995eed5175ed56711bd  libcxx-musl_compat.patch"
 sha512sums="3be33787c79aa5d03a3f507be20ef986215d6008e4f0370e3c5906d76a620bf27c9ed4c35f4561c1ac507a1b217fa7fc7577611e7205f3f2433c677bf86b8632  libcxx-3.5.1.src.tar.xz
-fd1e0b2e3d0ea6a42cd1e76697caf1b5b39306694fd6af083ef314659e80b1a5838150d09219d540856cb365fc39cfac8363e2d04dfb57f53b87dcd3b8e51aed  libcxx-musl_compat.patch"
+e0c84990a291eee0cecd42bd42883f01b7545000022a31af119f91cbb4621300289c566d244de419184b1828737d0c8ab388f4b9fc3af21b4b6b35f291fe77b9  libcxx-musl_compat.patch"
