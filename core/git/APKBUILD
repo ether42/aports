@@ -39,6 +39,10 @@ _makeopts="
 
 _gitcoredir=/usr/libexec/git-core
 
+unpack() {
+	default_unpack || return 0
+}
+
 prepare() {
 	cd "$srcdir"/$pkgname-$pkgver
 	for i in $source; do

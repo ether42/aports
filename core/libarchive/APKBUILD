@@ -1,0 +1,73 @@
+# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+pkgname=libarchive
+pkgver=3.1.2
+pkgrel=2
+pkgdesc="library that can create and read several streaming archive formats"
+url="http://libarchive.googlecode.com/"
+arch="all"
+license="BSD"
+depends=""
+subpackages="$pkgname-dev $pkgname-doc $pkgname-tools"
+makedepends="zlib-dev bzip2-dev xz-dev acl-dev libressl-dev expat-dev"
+depends_dev="$makedepends"
+source="http://www.libarchive.org/downloads/libarchive-$pkgver.tar.gz
+	0001-mtree-fix-line-filename-length-calculation.patch
+	libarchive-3.1.2-acl.patch
+	libarchive-3.1.2-sparce-mtree.patch
+	CVE-2013-0211.patch
+	CVE-2015-2304.patch
+	"
+
+_builddir="$srcdir"/$pkgname-$pkgver
+prepare() {
+	cd "$_builddir"
+	for i in $source; do
+		case $i in
+		*.patch) msg $i; patch -p1 -i "$srcdir"/$i || return 1;;
+		esac
+	done
+}
+
+build () {
+	cd "$_builddir"
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--without-xml2 \
+		|| return 1
+	make
+}
+
+package() {
+	cd "$_builddir"
+	make DESTDIR="$pkgdir" install || return 1
+	rm "$pkgdir"/usr/lib/*.la || return 1
+}
+
+tools() {
+	pkgdesc="libarchive tools bsdtar and bsdcpio"
+	mkdir -p "$subpkgdir"/usr/ "$subpkgdir"/bin/
+	mv "$pkgdir"/usr/bin "$subpkgdir"/usr/
+	ln -s /usr/bin/bsdcpio "$subpkgdir"/bin/cpio
+	ln -s /usr/bin/bsdtar "$subpkgdir"/bin/tar
+}
+
+md5sums="efad5a503f66329bb9d2f4308b5de98a  libarchive-3.1.2.tar.gz
+fda89c145bbcd793a96b06b463ef6a72  0001-mtree-fix-line-filename-length-calculation.patch
+a5c995661c62429ceff2c23ea322393b  libarchive-3.1.2-acl.patch
+cb344a879b3c4550fe3faf86c3826f23  libarchive-3.1.2-sparce-mtree.patch
+fc5f5158d414e3a7e9f085d8d1470014  CVE-2013-0211.patch
+b27c60d9288780261410366994103278  CVE-2015-2304.patch"
+sha256sums="eb87eacd8fe49e8d90c8fdc189813023ccc319c5e752b01fb6ad0cc7b2c53d5e  libarchive-3.1.2.tar.gz
+d6f82f33bb35680d391476225fcdbb1bf67b4ffb1e8c8094d89fbf907ebd1e63  0001-mtree-fix-line-filename-length-calculation.patch
+41f94b16da2acb8af4c441b221736f0f7fec4ac5ba6ed29e3ccfb8b30e2322e6  libarchive-3.1.2-acl.patch
+0964edfa27c189b667e3a3424ab7e6a03460e9735210f6e4f07fcecef596e7d6  libarchive-3.1.2-sparce-mtree.patch
+75f30c3867d3924461bb764ea2ca3c1b1e43240aeb5b0dd93a103fd7a7ca7fe9  CVE-2013-0211.patch
+5a862586b4684d819add1df9d747bc47f9a4f2fecd069175bf00f6927c9633bf  CVE-2015-2304.patch"
+sha512sums="1f3c2a675031f93c7d42ae2ed06742b0b1e2236ff57d9117791d62fb8ae77d6cafffbcb5d45b5bd98daa908bd18c576cf82e01a9b1eba699705e23eff3688114  libarchive-3.1.2.tar.gz
+b193a73f37cfab2c8ffb5a30a3dac38989e9490bb4a573a627ca5441dd9b8d10374069e1938c1f195a3aeb972da0bcf705283813a756670128af8320a6d50182  0001-mtree-fix-line-filename-length-calculation.patch
+96c5080adbdb2872444030272c8b3c8dd7b1326c25cf8b9d9a396e738b757a81186876b44518a163c9be652bcfa3bda89c74fa0a06e686abbe1242d261ddfdf3  libarchive-3.1.2-acl.patch
+abd595b10a772fc4927d1faa4f3aac18fe82a8a8ef655d3bc25799aca3aaf72910307fcf67adf1b4b4034829ea4a30fb4bd29acba6e450ad8be2662d7f61a430  libarchive-3.1.2-sparce-mtree.patch
+c10470ab67dd94944489f72e4d6f39d98163f5d7a92bcd550aa323e9a1b96148588bd04ac7d8c6ff232dc388559fb3e67552bb5c83ac7626ad714517f5022fce  CVE-2013-0211.patch
+ae3161b36605c81622d4d4c44f33c31e596506dc60ffb43a91b0f7b831d15d48abdd64725cd770bca6795230f1505d301a74db63903c91507195ccdea0737b63  CVE-2015-2304.patch"
