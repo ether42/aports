@@ -1,7 +1,7 @@
 # Maintainer: Tomasz Sterna <tomek@xiaoka.com>
 pkgname=libressl
-pkgver=2.1.2
-pkgrel=1
+pkgver=2.2.2
+pkgrel=0
 pkgdesc="Toolkit for SSL/TLS"
 url='http://www.libressl.org/'
 depends=
@@ -9,7 +9,7 @@ makedepends="linux-headers"
 arch="all"
 license="openssl"
 options='libtool'
-subpackages="$pkgname-dev libcrypto30.0:libcrypto libssl27.0:libssl $pkgname-doc"
+subpackages="$pkgname-dev libcrypto35:libcrypto libssl35:libssl $pkgname-doc"
 source="http://ftp.openbsd.org/pub/OpenBSD/LibreSSL/libressl-$pkgver.tar.gz"
 
 _builddir="$srcdir"/$pkgname-$pkgver
@@ -36,11 +36,11 @@ libcrypto() {
 
 libssl() {
 	pkgdesc="SSL shared libraries"
-	replaces="openssl"
+	replaces="openssl libssl"
 	mkdir -p "$subpkgdir"/usr/lib
 	mv "$pkgdir"/usr/lib/libssl*.so.* "$subpkgdir"/usr/lib/
 }
 
-md5sums="c979a977e3b54fbecfa762c74a631bc3  libressl-2.1.2.tar.gz"
-sha256sums="07c05f12e5d49dbfcf82dd23b6b4877b7cdb1c8e4c8dd27cb4d9e5758a6caf52  libressl-2.1.2.tar.gz"
-sha512sums="3c6f5165d7ab65e792fb065219723030aa84c7aa31b1a5712398dfaf04747c3dffaf11a4e864892b86433b3707e5007e309fb75a455652787c6ea2b3034de081  libressl-2.1.2.tar.gz"
+md5sums="dd3a7cac858b7b2f6f7b8686d6562f60  libressl-2.2.2.tar.gz"
+sha256sums="e094b09f33d468545edbb2b16dc178f958ec2f66de1a2fc7cc2a20bd2489a114  libressl-2.2.2.tar.gz"
+sha512sums="eeff48450b92f46db9bbd851fbf97ffc9fdea16f69d6319de94755541b441bee1adea5d3f08d695e0cab9ce63f8ff0f2f6a5ba186dc071ec062ade53da3f811f  libressl-2.2.2.tar.gz"
