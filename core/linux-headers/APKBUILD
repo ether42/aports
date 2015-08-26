@@ -17,10 +17,6 @@ source="ftp://ftp.kernel.org/pub/linux/kernel/v3.x/linux-$_kernver.tar.bz2
 	4-4-libc-compat.h-prevent-redefinition-of-struct-ethhdr.patch
 	"
 
-unpack() {
-	default_unpack || return 0
-}
-
 prepare() {
 	cd "$srcdir"/linux-$_kernver
 	if [ "$_kernver" != "$pkgver" ]; then

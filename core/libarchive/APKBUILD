@@ -36,6 +36,10 @@ build () {
 		--prefix=/usr \
 		--without-xml2 \
 		|| return 1
+
+	# do not use musl's broken lchmod
+	sed -i /HAVE_LCHMOD/d "$_builddir"/config.h
+
 	make
 }
 
