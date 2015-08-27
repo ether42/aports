@@ -10,7 +10,7 @@ license="custom"
 replaces="python-dev"
 subpackages="$pkgname-dev $pkgname-doc $pkgname-tests"
 depends=""
-makedepends="expat-dev libressl-dev zlib-dev bzip2-dev sqlite-dev paxctl"
+makedepends="expat-dev libressl-dev zlib-dev bzip2-dev sqlite-dev"
 source="http://www.$pkgname.org/ftp/$pkgname/$pkgver/Python-$pkgver.tar.xz
 	find_library.patch
 	unchecked-ioctl.patch
@@ -57,9 +57,6 @@ package() {
 	make -j1 DESTDIR="$pkgdir" install || return 1
 	install -Dm644 LICENSE "$pkgdir"/usr/share/licenses/$pkgname/LICENSE
 	rm "$pkgdir/usr/bin/2to3" || return 1
-	# we need to enable emutramp - needed for virt-manager
-	# disable mprotect - needed for cffi
-	paxctl -czxm "$pkgdir"/usr/bin/python
 }
 
 _mv_files() {
