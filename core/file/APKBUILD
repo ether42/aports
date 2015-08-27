@@ -1,0 +1,45 @@
+# Maintainer: Natanael Copa <ncopa@alpinelinux.org>
+pkgname=file
+pkgver=5.24
+pkgrel=0
+pkgdesc="File type identification utility"
+url="http://www.darwinsys.com/file/"
+arch="all"
+license="BSD"
+depends=""
+source="ftp://ftp.astron.com/pub/file/file-$pkgver.tar.gz
+	"
+subpackages="$pkgname-dev $pkgname-doc"
+
+_builddir="$srcdir/$pkgname-$pkgver"
+prepare() {
+	cd "$_builddir"
+	update_config_sub || return 1
+	for i in $source; do
+		case $i in
+		*.patch) msg $i; patch -p1 -i "$srcdir"/$i || return 1;;
+		esac
+	done
+}
+
+build() {
+	cd "$_builddir"
+	./configure \
+		--build=$CBUILD \
+		--host=$CHOST \
+		--prefix=/usr \
+		--datadir=/usr/share \
+		|| return 1
+	make || return 1
+	make tests || return 1
+}
+
+package() {
+	cd "$srcdir"/$pkgname-$pkgver
+	make DESTDIR="$pkgdir" install || return 1
+	rm "$pkgdir"/usr/lib/*.la || return 1
+}
+
+md5sums="ec161b5a0d2aef147fb046e5630b1408  file-5.24.tar.gz"
+sha256sums="802cb3de2e49e88ef97cdcb52cd507a0f25458112752e398445cea102bc750ce  file-5.24.tar.gz"
+sha512sums="9b804bbba1a77e183dbd68d4e2380d1d7e8a4dbdc6992adabab0e6fee4689f3ea8d262e5645224f4c97d7aaf988fe55c2a143c776111d9107e519692b81e6e8d  file-5.24.tar.gz"

@@ -1,0 +1,23 @@
+diff -ru llvm-3.5.0.src.orig/tools/clang/lib/Driver/Tools.cpp llvm-3.5.0.src/tools/clang/lib/Driver/Tools.cpp
+--- llvm-3.5.0.src.orig/tools/clang/lib/Driver/Tools.cpp	2014-08-07 07:51:51.000000000 -0300
++++ llvm-3.5.0.src/tools/clang/lib/Driver/Tools.cpp	2014-11-12 15:11:31.901864030 -0200
+@@ -7412,7 +7412,8 @@
+       crtbegin = isAndroid ? "crtbegin_dynamic.o" : "crtbeginS.o";
+     else
+       crtbegin = isAndroid ? "crtbegin_dynamic.o" : "crtbegin.o";
+-    CmdArgs.push_back(Args.MakeArgString(ToolChain.GetFilePath(crtbegin)));
++    if (ToolChain.GetRuntimeLibType(Args) != ToolChain::RLT_CompilerRT)
++      CmdArgs.push_back(Args.MakeArgString(ToolChain.GetFilePath(crtbegin)));
+ 
+     // Add crtfastmath.o if available and fast math is enabled.
+     ToolChain.AddFastMathRuntimeIfAvailable(Args, CmdArgs);
+@@ -7506,7 +7507,8 @@
+       else
+         crtend = isAndroid ? "crtend_android.o" : "crtend.o";
+ 
+-      CmdArgs.push_back(Args.MakeArgString(ToolChain.GetFilePath(crtend)));
++      if (ToolChain.GetRuntimeLibType(Args) != ToolChain::RLT_CompilerRT)
++        CmdArgs.push_back(Args.MakeArgString(ToolChain.GetFilePath(crtend)));
+       if (!isAndroid)
+         CmdArgs.push_back(Args.MakeArgString(ToolChain.GetFilePath("crtn.o")));
+     }

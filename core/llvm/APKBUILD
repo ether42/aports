@@ -1,64 +1,114 @@
-# Contributor: William Pitcock <nenolod@dereferenced.org>
-# Maintainer: William Pitcock <nenolod@dereferenced.org>
+# Contributor Travis Tilley <ttilley@gmail.com>
 pkgname=llvm
-pkgver=3.5.1
+pkgver=3.6.2
 pkgrel=0
 pkgdesc="low level virtual machine compiler system"
-arch="x86 x86_64 armhf"
+arch="all"
 url="http://llvm.org/"
 license="UOI-NCSA"
-depends=
+depends=""
 depends_dev="perl"
-makedepends="$depends_dev mdocml python chrpath libcxx-dev"
+makedepends="$depends_dev make flex bison mdocml musl-dev binutils-dev isl-dev zlib-dev file python python-dev chrpath"
 install=
-subpackages="clang $pkgname-dev $pkgname-doc $pkgname-libs"
-source="http://llvm.org/releases/$pkgver/llvm-$pkgver.src.tar.xz
-	http://llvm.org/releases/$pkgver/cfe-$pkgver.src.tar.xz
-	http://llvm.org/releases/$pkgver/compiler-rt-$pkgver.src.tar.xz
-	llvm-dos-linux.patch
-	llvm-musl.patch
-	compiler-rt-musl_compat.patch
-	"
+subpackages="clang clang-doc:clang_doc $pkgname-dev $pkgname-doc $pkgname-libs"
+source="
+	llvm-0001-fix-shared-build.patch
+	llvm-0002-musl-triple.patch
+	llvm-0003-musl-hacks.patch
+	llvm-no-ehtable.patch
+	llvm-crtbeginend.patch
+	compiler-rt-0001-musl-no-dlvsym.patch
+	compiler-rt-0002-musl-no-sanitizers.patch
+	compiler-rt-0003-off_t.patch
+	clang-0001-fix-stdint.h.patch
+	clang-0002-fix-unwind-header.patch
+	clang-0003-add-dos-distro.patch
+	clang-0004-dos-use-z-relro.patch
+	clang-0005-dos-hash-style-gnu.patch
+	clang-0006-musl-dos-triple.patch
+	clang-0007-musl-dynamic-linker-paths.patch
+	clang-0008-dos-PIE-by-default.patch
+	clang-0009-pass-host-triple-to-compiler-rt.patch
+	clang-0010-dos-use-z-now.patch
+	clang-0011-dos-SSP-by-default.patch
+		http://llvm.org/releases/$pkgver/llvm-$pkgver.src.tar.xz
+		http://llvm.org/releases/$pkgver/cfe-$pkgver.src.tar.xz
+		http://llvm.org/releases/$pkgver/clang-tools-extra-$pkgver.src.tar.xz
+		http://llvm.org/releases/$pkgver/compiler-rt-$pkgver.src.tar.xz
+		http://llvm.org/releases/$pkgver/polly-$pkgver.src.tar.xz"
+
 
 _builddir="$srcdir"/build
+
 _srcdir="$srcdir"/"$pkgname-$pkgver.src"
+_srcdir_clang="$_srcdir"/tools/clang
+_srcdir_clang_extra="$_srcdir_clang"/tools/extra
+_srcdir_polly="$_srcdir"/tools/polly
+_srcdir_compiler_rt="$_srcdir"/projects/compiler-rt
+
 
 prepare() {
-	msg "Preparing CLANG sources..."
+
+	msg "Preparing LLVM project sources..."
 	mv "$srcdir"/cfe-$pkgver.src \
-		"$srcdir"/$pkgname-$pkgver.src/tools/clang || return 1
+	  "$_srcdir_clang" || return 1
+	mv "$srcdir"/clang-tools-extra-$pkgver.src \
+	  "$_srcdir_clang_extra" || return 1
+	mv "$srcdir"/polly-$pkgver.src \
+	  "$_srcdir_polly" || return 1
 	mv "$srcdir"/compiler-rt-$pkgver.src \
-		"$srcdir"/$pkgname-$pkgver.src/projects/compiler-rt || return 1
+	  "$_srcdir_compiler_rt" || return 1
+
 
 	msg "Patching LLVM core..."
-	cd "$srcdir"/$pkgname-$pkgver.src || return 1
+	cd "$_srcdir" || return 1
 	update_config_sub || return 1
+	sed -i -e '/case "\${UNAME_MACHINE}:\${UNAME_SYSTEM}:\${UNAME_RELEASE}:\${UNAME_VERSION}" in/i \' \
+	       -e 'if [ x != "x$CBUILD" ]; then echo "$CBUILD"; exit; fi' \
+		./autoconf/config.guess || return 1
 	for i in $source; do
 		case $i in
-		*.patch)
+		llvm-*.patch)
 			msg "Applying $i..."
-			patch -p1 -N -i "$srcdir"/$i || return 1
+			patch -s -p1 -N -i "$srcdir"/$i || return 1
 			;;
 		esac
 	done
-	# fails to link
-	rm ./unittests/Support/formatted_raw_ostream_test.cpp
+
+	msg "Patching clang..."
+	cd "$_srcdir_clang" || return 1
+	# FIXME: I have never seen these tests pass on any system, be it vanilla clang
+	# or patched, musl or glibc, autoconf or cmake. It fails on alpine, gentoo,
+	# and ubuntu.
+	# TODO: The version of this test in 3.7 works just fine. Re-enable for 3.7
+	rm ./test/Driver/lto.c
+	for i in $source; do
+		case $i in
+		clang-*.patch)
+			msg "Applying $i..."
+			patch -s -p1 -N -i "$srcdir"/$i || return 1
+			;;
+		esac
+	done
+
+	msg "Patching compiler-rt..."
+	cd "$_srcdir_compiler_rt" || return 1
+	for i in $source; do
+		case $i in
+		compiler-rt-*.patch)
+			msg "Applying $i..."
+			patch -s -p1 -N -i "$srcdir"/$i || return 1
+			;;
+		esac
+	done
 }
 
 build() {
-	mkdir "$_builddir"
+	rm -rf "$_builddir"
+	mkdir -p "$_builddir"
 	cd "$_builddir"
 
 	sed -i -e 's/groff /mandoc /' ../$pkgname-$pkgver.src/tools/clang/docs/tools/Makefile
-
-	export CBUILD
-	sed -i -e '/case "\${UNAME_MACHINE}:\${UNAME_SYSTEM}:\${UNAME_RELEASE}:\${UNAME_VERSION}" in/i \' \
-	        -e 'if [ x != "x$CBUILD" ]; then echo "$CBUILD"; exit; fi' \
-		../$pkgname-$pkgver.src/autoconf/config.guess \
-		|| return 1
-	sed -i -e '/^CompilerTargetTriple :=/{s/:=.*/:= '$CHOST'/;n;d}' \
-		../$pkgname-$pkgver.src/projects/compiler-rt/make/platform/clang_linux.mk \
-		|| return 1
 
 	$_srcdir/configure \
 		--build=$CBUILD \
@@ -67,44 +117,52 @@ build() {
 		--sysconfdir=/etc \
 		--mandir=/usr/share/man \
 		--infodir=/usr/share/info \
+		--enable-polly \
 		--enable-libcpp \
 		--enable-shared \
 		--enable-optimized \
 		|| return 1
 
-	# configure gets it wrong. We do have error_t
-	sed -i -e 's/.*undef HAVE_ERROR_T.*/#define HAVE_ERROR_T 1/'  \
-		-e '/define error_t/d' \
-		./include/llvm/Config/config.h || return 1
-
 	make PM=$JOBS || return 1
+
+	#make check || return 1
 }
 
 package() {
 	cd "$_builddir"
-	make DESTDIR="$pkgdir" install || return 1
+	make DESTDIR="$pkgdir" install
 
-	#relocate docs
-	mkdir -p "$pkgdir"/usr/share/doc
-	mv "$pkgdir"/usr/docs/llvm "$pkgdir"/usr/share/doc/ || return 1
-	rmdir "$pkgdir"/usr/docs || return 1
-	chrpath -d "$pkgdir"/usr/bin/* "$pkgdir"/usr/lib/*.so
+	rm "$pkgdir"/usr/lib/LLVMHello.so
+
+	file "$pkgdir"/usr/lib/*.so | awk -F: '$2~/ELF/{print $1}' | xargs -r chrpath -d
+	file "$pkgdir"/usr/bin/* | awk -F: '$2~/ELF/{print $1}' | xargs -r chrpath -d
 }
 
 clang() {
 	pkgdesc="A C language family front-end for LLVM"
+
 	mkdir -p "$subpkgdir"/usr/bin \
-		"$subpkgdir"/usr/lib "$subpkgdir"/usr/share/clang
-	mv "$pkgdir"/usr/bin/clang* "$pkgdir"/usr/bin/c-index-test \
+		"$subpkgdir"/usr/lib "$subpkgdir"/usr/share/clang "$subpkgdir"/usr/include
+	mv "$pkgdir"/usr/bin/*clang* \
 		"$subpkgdir"/usr/bin/ || return 1
 	mv "$pkgdir"/usr/lib/clang \
-		"$pkgdir"/usr/lib/libclang.so \
+		"$pkgdir"/usr/lib/libclang* \
+		"$pkgdir"/usr/lib/libmodernize* \
 		"$subpkgdir"/usr/lib/ || return 1
+	mv "$pkgdir"/usr/include/clang "$pkgdir"/usr/include/clang-c \
+		"$subpkgdir"/usr/include/ || return 1
+
 	cp -r "$_srcdir"/tools/clang/tools/scan-build "$subpkgdir"/usr/share/clang/scan-build
 	cp -r "$_srcdir"/tools/clang/tools/scan-view "$subpkgdir"/usr/share/clang/scan-view
 
 	ln -s /usr/share/clang/scan-build/scan-build "$subpkgdir"/usr/bin/scan-build
 	ln -s /usr/share/clang/scan-view/scan-view "$subpkgdir"/usr/bin/scan-view
+}
+
+clang_doc() {
+	pkgdesc="clang documentation"
+	mkdir -p "$subpkgdir"/usr/share/man/man1/ || return 1
+	mv "$pkgdir"/usr/share/man/man1/clang.1 "$subpkgdir"/usr/share/man/man1/ || return 1
 }
 
 libs() {
@@ -113,21 +171,75 @@ libs() {
 	mv "$pkgdir"/usr/lib/*.so "$subpkgdir"/usr/lib/
 }
 
-md5sums="2d3d8004f38852aa679e5945b8ce0b14  llvm-3.5.1.src.tar.xz
-93f9532f8f7e6f1d8e5c1116907051cb  cfe-3.5.1.src.tar.xz
-d626cfb8a9712cb92b820798ab5bc1f8  compiler-rt-3.5.1.src.tar.xz
-9660bd87babcb15a3df53f608410c484  llvm-dos-linux.patch
-832e665e4972afb94fb6c976a7e35c69  llvm-musl.patch
-12223082fec06d2eb30245983dd21326  compiler-rt-musl_compat.patch"
-sha256sums="bf3275d2d7890015c8d8f5e6f4f882f8cf3bf51967297ebe74111d6d8b53be15  llvm-3.5.1.src.tar.xz
-6773f3f9cf815631cc7e779ec134ddd228dc8e9a250e1ea3a910610c59eb8f5c  cfe-3.5.1.src.tar.xz
-adf4b526f33e681aff5961f0821f5b514d3fc375410008842640b56a2e6a837a  compiler-rt-3.5.1.src.tar.xz
-38868dbdea86a878797fabd68cb56da225fb6250075e3542636ded650cad4744  llvm-dos-linux.patch
-1e4c4d9e2d76719c2fedc6fe1ce03e59a16521bdb2562e84255a82d510a4f894  llvm-musl.patch
-3dc5c3f0255434185033ca516a6b831257fa3d526e7898d2ca670eb311bd6ee8  compiler-rt-musl_compat.patch"
-sha512sums="a643ff173627e813b26077829b1af801b75daa5dcea540c4f05366ed57ef6aeafaf8b3fe4208d4c1b303a048a90ddac48a23488480c165637ae9218de140ae55  llvm-3.5.1.src.tar.xz
-bd904586f6155c05d2f7ddd05b86c28feae883cdc60e2cb3b48d4ae0ce55916064bcea414a46518d0fb73618f18a3f3fca6cc4cad81083428a2221299f5c5c7f  cfe-3.5.1.src.tar.xz
-3a4f093972b080f439c81c8b08793c311cea71afeda7ba7b4e32f19378b1cb420da7b594fa9f6a6f7826570438f67d42d3243c4b3503e1cf8a7dcedf52e8e590  compiler-rt-3.5.1.src.tar.xz
-7ca41dfe068fa0208c3d2d667e482717db02f9de27c059170d32538f5c81efd10a28358deb7dc11a20f3a9b165c775bd218bbe5e1463ea7e367932abb9b373bc  llvm-dos-linux.patch
-e9531f86521628a1f0b73e15da55c6d51c7283a0239bc481b89a73c5195ae605b6680e75cbcd9197b71ceab534082f86e0e4d39701edcbe9195cc01df97285b9  llvm-musl.patch
-e68bc5a5b1402486d3ae2f9c5909bd98ac411a2abed48fb6756e95839111bbb23f0dbf511873637dd73276da62d084797ac19b78a4cdac81f7ce945200d830df  compiler-rt-musl_compat.patch"
+md5sums="0947294a8c83c8d7f857dfc16204c4eb  llvm-0001-fix-shared-build.patch
+dacc40624cf09fa98de27016bebb1432  llvm-0002-musl-triple.patch
+056178d87918d531f531b1b765a59e7c  llvm-0003-musl-hacks.patch
+ed17c9c41b9cedb8e9b12d1f8aebf1eb  llvm-no-ehtable.patch
+7d24a43b9afab31e1885d78849bb978a  llvm-crtbeginend.patch
+346081b2f0825ca7f491155c4b3ca0ea  compiler-rt-0001-musl-no-dlvsym.patch
+eb3797555357896a92f74bf1bacfbdc2  compiler-rt-0002-musl-no-sanitizers.patch
+8bc11d4a60af51a7fc10643bd0970d3a  compiler-rt-0003-off_t.patch
+eab0123372fa909817ed21cfcffdbe16  clang-0001-fix-stdint.h.patch
+069f5cd7a6d0b01eade62bb72aac9e8b  clang-0002-fix-unwind-header.patch
+b74e57c700f87a69eae0ea3196504354  clang-0003-add-dos-distro.patch
+9f78e2237b3d15f6fb6dc59ef98ca94e  clang-0004-dos-use-z-relro.patch
+2f6fad2e2c3a6264c480b24ebff37f09  clang-0005-dos-hash-style-gnu.patch
+8acdb8eaef257d565aad24af86915b7f  clang-0006-musl-dos-triple.patch
+f69714b175a5a888f77d68e2ebf76167  clang-0007-musl-dynamic-linker-paths.patch
+271fdbb402b0c119ef235fcc17ee20f5  clang-0008-dos-PIE-by-default.patch
+0ae0c5939c27750c52b39158fbc7a7a9  clang-0009-pass-host-triple-to-compiler-rt.patch
+a8706054a4eeff95982bcdab2c83de20  clang-0010-dos-use-z-now.patch
+3865fda2e08d64ff475f0ed5eff43fb0  clang-0011-dos-SSP-by-default.patch
+0c1ee3597d75280dee603bae9cbf5cc2  llvm-3.6.2.src.tar.xz
+ff862793682f714bb7862325b9c06e20  cfe-3.6.2.src.tar.xz
+3ebc1dc41659fcec3db1b47d81575e06  clang-tools-extra-3.6.2.src.tar.xz
+e3bc4eb7ba8c39a6fe90d6c988927f3c  compiler-rt-3.6.2.src.tar.xz
+09dd91d06cc0832095379d00206bc3a1  polly-3.6.2.src.tar.xz"
+sha256sums="4f75c2a76cf4c439d65c8e67511cd91c895edf8ccf003a5f94ffa07c29456296  llvm-0001-fix-shared-build.patch
+98d92c6cb305faff141b1b5a7cfa18656bd80aa478e7a45984f27e60a80bfdd9  llvm-0002-musl-triple.patch
+c6892c843b38c9a852367e5d76ffc29c21bdfd522adbc4c4e3e3c890a513c0db  llvm-0003-musl-hacks.patch
+0e77336174e512fc9b82c79610eeaa81d7c2099aefb3ab9d393ef005677a5f2c  llvm-no-ehtable.patch
+faaf0eacce19b3e5a3e56ebec90ec5a677ea7cec0d01b97c244cd8e60c1c16b6  llvm-crtbeginend.patch
+94f5626b4729afb39ad00a6cac4f8d44e3ee6f3d87362268bcd2c0ec637edc22  compiler-rt-0001-musl-no-dlvsym.patch
+7dd2d22c61892eb651809649606fb3722520a5d12f8d88c2e96be977d0f8b71a  compiler-rt-0002-musl-no-sanitizers.patch
+45bcfa7d1c757e32183c5cd95703f150ec3d1ed966a9cfa68b13b648e5310e78  compiler-rt-0003-off_t.patch
+516a1dbba85731a557840ee3ebc9cc82a2e5ce625cf5b37f5392bd089ef40bdc  clang-0001-fix-stdint.h.patch
+3be240b78d2371728280ffb15191573c969b304ed784883b79c662ff73c2bc43  clang-0002-fix-unwind-header.patch
+b04f2bd46222fd1c9201ea29508bf57c640210e7a4233e00893a3ead4418516c  clang-0003-add-dos-distro.patch
+607794bafe1680c8a478545b6aa60d1ae82d076f7b8bf084b363e840d2d8fac8  clang-0004-dos-use-z-relro.patch
+793bbbd7f5b878247e8fb6c5b7328f1b5881fbf5205aef064b14fb0d299a6ea6  clang-0005-dos-hash-style-gnu.patch
+d68c09654ff4a377f0498bf8e34e4fae1e4427686cd95048a19c609c8231e724  clang-0006-musl-dos-triple.patch
+44667890d5fa1816ca6cb33e63b49c5e9cfcb8265cdae513b2d0bd0916726766  clang-0007-musl-dynamic-linker-paths.patch
+7cc7eee7be33fc3d913e47025ad776b78049dba347badc3578dc67ec695ff180  clang-0008-dos-PIE-by-default.patch
+ec0c2014d455040499f599dc3d690fb92e54baf6058605be5f25c2c845629cfe  clang-0009-pass-host-triple-to-compiler-rt.patch
+02bf7a1d9fd1ebb630445762bd3f120b65e6cf23b15524bab1cab127be0a5212  clang-0010-dos-use-z-now.patch
+aea0c895d9aa9caf106b1cd8a18d945241cee182c712902718cb2e3ccb8dc4dc  clang-0011-dos-SSP-by-default.patch
+f60dc158bfda6822de167e87275848969f0558b3134892ff54fced87e4667b94  llvm-3.6.2.src.tar.xz
+ae9180466a23acb426d12444d866b266ff2289b266064d362462e44f8d4699f3  cfe-3.6.2.src.tar.xz
+6a0ec627d398f501ddf347060f7a2ccea4802b2494f1d4fd7bda3e0442d04feb  clang-tools-extra-3.6.2.src.tar.xz
+0f2ff37d80a64575fecd8cf0d5c50f7ac1f837ddf700d1855412bb7547431d87  compiler-rt-3.6.2.src.tar.xz
+f2a956730b76212f22a1c10f35f195795e4d027ad28c226f97ddb8c0fd16bcbc  polly-3.6.2.src.tar.xz"
+sha512sums="b3c0e0f74680e9b2d02f1c923a191ef5eb913be84105e4d63aae6a88b1dac758467cecad3430496a7945cebdc73ec5ee1f643dc5dc7b336fee920e3c8b6d54d2  llvm-0001-fix-shared-build.patch
+49203df74402b2e080fafb99a4df54d1822dbd3e4e018c44f2b41c95fcfa01b14c8c505405fd1c8909eac5effd36c60decdc771b4db9a16faf5f980af75c7551  llvm-0002-musl-triple.patch
+df8959d43af48054bc35e4125f98e5dab1e1b5beaf7b67e95791caf144efec06764bd31a9eb5efc2179932591de8b862ebf89592d131e47070c89f19412979b7  llvm-0003-musl-hacks.patch
+ca28a3769c59c84b1451e2b412f57735163538293b8d5ba753a6510cb1924b213ee43218c2bc187c8e7a49bd5b109012b018867ef20b4f65c9889192fbf42b53  llvm-no-ehtable.patch
+52436d14d6939ca8359e79c5453cd821daf48a1a6e26cf744ccd9818a1817134fd3947b5b6d5ba8a369272f0680bdaf74b28c749500bdf26e72f563a8c1bc7d2  llvm-crtbeginend.patch
+f1e6d17f4cc618b6a1edba64bda652f210d3c839bd8d2d4eff81af0895176062dab1e8fa963d0fe2403311863aee083d257bdb57ad9b44e23a958286a0d2e12b  compiler-rt-0001-musl-no-dlvsym.patch
+45f64cd5863238b7f7ad2f4a3733455e17eb3ab3121ba3404404f312beb91bb4d109c7c3278f77fc78730086e70cfe6532e159efef30e34af0132ca44a965220  compiler-rt-0002-musl-no-sanitizers.patch
+effed16bed6160c1629c72960424afed87f8c1c1290bf4eccd43da5a1fcb5b350242c01fcc1cc7355b420f5ac80231ea7a33ca71cafad884ea4c756cbdfbdd59  compiler-rt-0003-off_t.patch
+6ad0a3409eb9c9bd43115c696f2894b683e4659b16b7ce29c7d88c35b3f585c10870c9df224a63fa14ff78810ee829b88a60dbf426f5b36084dfce7541a0cc00  clang-0001-fix-stdint.h.patch
+0e3c9fbc70a12986e0531c9c642f9fff97d9d7617fd33ee69ac81d283ee14e86b6de435f1b51478a9c304f787c1b21ebc804d39a57a1ebeedce7308362d93614  clang-0002-fix-unwind-header.patch
+95d30263ff2e7b2bc9fb03757a125517bce1786f97f2fc0b9557faea164b66dca34184abc8127421386e2484c21b1b3a4c8369fd1c0f7411a20819be5037357b  clang-0003-add-dos-distro.patch
+5a7bc6495e6e8a0c1ffd45e3bf23a34e16e55b62836454d05856f4fd85083e1fd1c09382761579c780dea1e9aa759a58098fe09f9b9b8cca7853e5a1c97f08d8  clang-0004-dos-use-z-relro.patch
+d3a5fab1961041369819db45467d3a05b731802ad15b8847de1b01999dde11b372b614b62eb10bb15d63ca64a6869d49319f0333308fdac3a350aefc32769a88  clang-0005-dos-hash-style-gnu.patch
+a38be9045d3646ef3748badb66df30fd4ed464100b1f6c2e73e2110805b7f5c3402a65bfc242ed83bcfc7961c69ecea6f27034c0fce9c666d506ffb9bc90d089  clang-0006-musl-dos-triple.patch
+d23c9fb922312229d333091122ca65d94a4595af651657d8cca5a57c5804642897947702567c213027b02c98204cac9b92fee4a3e9e514bd7c539902e84462f4  clang-0007-musl-dynamic-linker-paths.patch
+d58b70cdf28bb84a49b6c7d905f7fc7cdd2bf89e307ffcc014cbe2cbca9b46e6bb333306142fbec524a2e7aa61f7a493a1a3689efb946efdd351985e21852d53  clang-0008-dos-PIE-by-default.patch
+7628c1b12febb27d0a9ecb846205edec61044fbb963ba5e588863652bccbb05d1436febf8840ff4b47dfb326689bb142464be59a18b17bd5d30aa03bb7e76a9f  clang-0009-pass-host-triple-to-compiler-rt.patch
+dcba02c6ce7d6cfd2e406bb27b93fe9776bf38ef219e40310dad50bcbff818844b194854cc254dfa64f649eae20c6dd706801aaa41191c65c0d109f63ccdfe5c  clang-0010-dos-use-z-now.patch
+574f49cc6390c42bf104ebf099d29754aa3fdc8e702bf76eed6bb53da56dfadcc2563b458d7da4fd9ffc34b289d5c2cb77b1f429c2b8ea047325a29247e2ef97  clang-0011-dos-SSP-by-default.patch
+42b44ce69cfb96e2dc12dc2246f0de8ff983a99741206e2c46ccf074b3248aaab9c0f22c6baad802de851d06f202f40db9dd62fe38aab4479b3f70026c936b36  llvm-3.6.2.src.tar.xz
+ed837c48f38d8998efd675b56477c8681dcedfcf3f71bba65930f145501289bebb6fe6a6d9de336548f94c381d016b99f10c58e046b885449755d44ac782de03  cfe-3.6.2.src.tar.xz
+1b7710a7deee30cefb6a3b4edb026a96d8935a0c6f3056ccdb7a45564d10baf01a4f6722ae853ad9a3bad17e8de32a3c0ec99c5cf6144647a5e182809d403f7a  clang-tools-extra-3.6.2.src.tar.xz
+7dafcc5bd4822475de649d8a84ae51af3c4ed4d0958f76b1b55ba79219638f3e78eb94a1986c6e9ba0e7f1ccf3ec834d546b5ca60e8b08083fea5880ecdf17a3  compiler-rt-3.6.2.src.tar.xz
+c3b0ce2179fb441dd1b4c99e801a15bcb205e7156ab22c181e6c4f15abaeec7797ef2ce4b8f41ffd31dd90b224290a15e5d94aaf992fb88fe8444cdb55c24ce1  polly-3.6.2.src.tar.xz"
